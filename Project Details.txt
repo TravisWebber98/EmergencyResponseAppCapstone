@@ -1,0 +1,50 @@
+PROJECT PROGRESS & THOUGHTS
+
+Each Main Page will include sample text/objects.
+
+
+Home page:
+-Make the appearance like a list, a list communities joined
+-Use ListTiles; each tile can be clicked on, leading to a community page
+	-Go to Community Pages
+
+
+Profile:
+-Display profile information
+   -Currently has sample data for testing string insertion 
+   -Data will later be retrieved from DB
+-Include an "Edit Profile", leading to a separate page
+   -TextField boxes for input
+   -"Save Changes" & "Cancel" button
+   -Find ways to retrieve input for saving!! (controllers)
+
+
+Notifications Page:
+-Use ListTiles
+-Either clicking on tile will give options of dealing with notification; currently does nothing
+-Data will be based on DB
+
+
+Login Page:
+-Login using
+   -username: email/username
+   -password: whatever
+-have two buttons to either login with credentials or register
+   -logging in with credentials directs to home page
+   -clicking register leads to a form page and home after
+-after registering, direct to "join a community"
+-find way to retrieve input for saving!! (controllers)
+
+
+Community page:
+-Don't go based on a chat system, go based on Facebook page functionality (Posts). 
+-Think posts and not messages
+-Ways of adding post? icon button?
+
+
+Additional thoughts:
+-Format code to look less messy
+-Consider areas where DB is necessary and format functions based on that
+-Navigation needs changes:
+   -Back arrow at top left of some cases don't need to lead directly to login page
+   -Figure way of removing back arrow in some cases or correct navigation.
