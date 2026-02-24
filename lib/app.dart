@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'package:emergency_response_app/features/auth/screens/login.dart';
-import 'package:emergency_response_app/features/auth/screens/signup.dart';
-import 'package:emergency_response_app/features/auth/screens/app_nav.dart';
-import 'package:emergency_response_app/features/auth/screens/community_page.dart';
-import 'package:emergency_response_app/features/auth/screens/edit_profile.dart';
+import 'package:emergency_response_app/features/auth/auth_screens.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
