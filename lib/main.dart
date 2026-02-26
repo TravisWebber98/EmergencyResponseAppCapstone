@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'core/services/isar/isar_service.dart';
+import 'package:emergency_response_app/core/services/services.dart';
 import 'app.dart';
 
 void main() async {

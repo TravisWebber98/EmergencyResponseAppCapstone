@@ -1,7 +1,6 @@
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../../models/community.dart';
-import '../../../models/account.dart';
+import 'package:emergency_response_app/models/models.dart';
 
 class IsarService {
   static late Isar isar;
