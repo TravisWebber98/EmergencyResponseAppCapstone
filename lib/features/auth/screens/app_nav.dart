@@ -16,42 +16,35 @@ class _AppNavState extends State<AppNav> {
 
   // These used to be globals in your old main.dart.
   // Keeping them here makes them easy to pass into ProfilePage.
-  String name = "Guest User";
-  String phoneNumber = "123-456-7890";
-  String address = "123 Sample St.";
-  String city = "__city__";
-  String state = "XX";
-  String zipcode = "12345";
-  String email = "sample@email.com";
+  // String name = "Guest User";
+  // String phoneNumber = "123-456-7890";
+  // String address = "123 Sample St.";
+  // String city = "__city__";
+  // String state = "XX";
+  // String zipcode = "12345";
+  // String email = "sample@email.com";
 
-  @override
-  Widget build(BuildContext context) {
-    final pages = <Widget>[
+
+  @override 
+  Widget build(BuildContext context){
+    final pages =[
       const NotificationsPage(),
       const HomePage(),
-      ProfilePage(
-        name: name,
-        phoneNumber: phoneNumber,
-        address: address,
-        city: city,
-        state: state,
-        zipcode: zipcode,
-        email: email,
-      ),
+      const ProfilePage(),
     ];
-
+    
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text("App Testing")),
       bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (int index) {
-          setState(() {
-            currentPageIndex = index;
-          });
-        },
-        indicatorColor: const Color.fromARGB(255, 164, 183, 231),
         selectedIndex: currentPageIndex,
+        onDestinationSelected: (i) => setState(() 
+            => currentPageIndex = i
+          ),
+        
+        indicatorColor: const Color.fromARGB(255, 164, 183, 231),
+        
         destinations: const <Widget>[
           NavigationDestination(
             icon: Badge(child: Icon(Icons.notifications_sharp)),
@@ -67,8 +60,25 @@ class _AppNavState extends State<AppNav> {
             label: 'Profile',
           ),
         ],
+        
       ),
       body: pages[currentPageIndex],
     );
   }
+  // @override
+  // Widget build(BuildContext context) {
+  //   final pages = <Widget>[
+  //     const NotificationsPage(),
+  //     const HomePage(),
+  //     ProfilePage(
+  //       name: name,
+  //       phoneNumber: phoneNumber,
+  //       address: address,
+  //       city: city,
+  //       state: state,
+  //       zipcode: zipcode,
+  //       email: email,
+  //     ),
+  //   ];
+  // }
 }
