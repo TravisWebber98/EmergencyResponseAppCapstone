@@ -1,10 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'app_nav.dart';
-import 'signup.dart';
 
-class loginPage extends StatelessWidget {
+class loginPage extends StatefulWidget {
   const loginPage({super.key});
+
+  @override
+  State<loginPage> createState() => _loginPageState();
+}
+class _loginPageState extends State<loginPage>{
+  final _identifier = TextEditingController();
+  final _password = TextEditingController();
+
+  String? error;
+  bool loading = false;
+
+  @override
+  void dispose(){
+    _identifier.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+
+    try {
+      final id = _identifier.text.trim();
+      String email = id;
+
+      if(!id.contains('@')){
+        final snap = await FirebaseFirestore
+        .instance.collection('usernames').doc(id.toLowerCase()).get();
+        if (!snap.exists) throw Exception("Username not found");
+        email = snap['email'];
+      }
+
+      await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: _password.text);
+
+      if(!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/app', (_) => false);
+    }catch(e){
+      setState(() => error = e.toString());
+    } finally{
+      if (mounted) setState(() => loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +63,10 @@ class loginPage extends StatelessWidget {
             const Padding(padding: EdgeInsets.only(top: 275.0)),
 
             // username
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 10.0),
               child: TextField(
+                controller: _identifier,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Email or Username',
@@ -30,9 +76,10 @@ class loginPage extends StatelessWidget {
             ),
 
             // password
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(left: 10, right: 10, top: 10),
               child: TextField(
+                controller: _password,
                 obscureText: true,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
@@ -50,23 +97,17 @@ class loginPage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.only(top: 20.0),
                   child: ElevatedButton(
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.lightBlue,
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const AppNav()),
-                      );
-
-                      // Alternative if you want routes:
-                      // Navigator.pushReplacementNamed(context, '/app');
-                    },
-                    child: const Text(
-                      'Log in',
+                    onPressed: loading ? null : _login,
+                    child: Text(
+                      loading ? 'Logging in...' : 'Login',
                       style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
+
                   ),
                 ),
               ),
@@ -84,15 +125,7 @@ class loginPage extends StatelessWidget {
                       backgroundColor: Colors.grey[300],
                       foregroundColor: Colors.grey[200],
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const registerPage()),
-                      );
-
-                      // Or:
-                      // Navigator.pushNamed(context, '/register');
-                    },
+                    onPressed: () => Navigator.pushNamed(context, '/register'),
                     child: const Text(
                       'Register',
                       style: TextStyle(color: Colors.black, fontSize: 20),
@@ -101,6 +134,8 @@ class loginPage extends StatelessWidget {
                 ),
               ),
             ),
+          if (error != null)
+            Text(error!, style: const TextStyle(color: Colors.red)),
           ],
         ),
       ),

@@ -1,9 +1,9 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:emergency_response_app/core/services/services.dart';
 import 'app.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'firebase_options.dart';
 import 'package:flutter/foundation.dart';
 
 
