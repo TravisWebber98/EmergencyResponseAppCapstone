@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:emergency_response_app/features/auth/auth_screens.dart';
+import 'package:emergency_response_app/features/community/community_screens.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

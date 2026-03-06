@@ -1,6 +1,6 @@
 import 'package:isar_community/isar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/post.dart';
+import '../../models/post.dart';
 
 class PostRepository {
   final Isar isar;
