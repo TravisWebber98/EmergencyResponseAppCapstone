@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "385224986719",
+    "project_id": "crisis-response-app-98560",
+    "storage_bucket": "crisis-response-app-98560.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:385224986719:android:b71761bb65d9d53b114bea",
+        "android_client_info": {
+          "package_name": "com.neatcapstone.app.emergency_response_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA43teAqEHTMAw0vvCN9q9Duq0u8gVF8WE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
