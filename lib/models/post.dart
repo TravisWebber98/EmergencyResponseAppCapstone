@@ -1,5 +1,4 @@
 import 'package:isar_community/isar.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 part 'post.g.dart';
 

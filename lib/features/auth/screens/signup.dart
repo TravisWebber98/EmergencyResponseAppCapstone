@@ -92,8 +92,9 @@ class _registerPageState extends State<registerPage>{
     } catch(e) {
       setState(() => error = e.toString());
     } finally {
-      if (mounted) 
+      if (mounted) {
         setState (() => loading = false);
+      }
     }
   }
 
