@@ -43,16 +43,20 @@ class Community {
 
   factory Community.fromJson(Map<String, dynamic> json) {
     return Community(
-      communityId: json['communityId'] as String,
+      communityId: (json['communityId'] ?? json['communityID']) as String,
       name: json['name'] as String,
       description: json['description'] as String,
       rules: json['rules'] as String?,
       city: json['city'] as String,
       state: json['state'] as String,
       country: json['country'] as String,
-      createdAt: (json['createdAt'] as DateTime),
-      updatedAt: (json['updatedAt'] as DateTime),
-    )..isarId = json['isarId'] as int;
+      createdAt: json['createdAt'] is DateTime
+          ? json['createdAt'] as DateTime
+          : json['createdAt'].toDate(),
+      updatedAt: json['updatedAt'] is DateTime
+          ? json['updatedAt'] as DateTime
+          : json['updatedAt'].toDate(),
+    )..isarId = json['isarId'] as int? ?? Isar.autoIncrement;
   }
 
   Map<String, dynamic> toJson() {

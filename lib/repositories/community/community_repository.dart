@@ -6,4 +6,7 @@ abstract class CommunityRepository {
   Future<List<Community>> getAllCommunities();
   Future<void> deleteCommunity(String communityId);
   Future<void> clearAllCommunities();
+  Future<void> joinCommunity(String userId, String communityId);
+  Future<List<Community>> getJoinedCommunities(String userId);
+  Future<List<Community>> getAvailableCommunities(String userId);
 }

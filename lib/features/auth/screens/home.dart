@@ -18,10 +18,7 @@ class HomePage extends StatelessWidget {
               title: const Text('Chat for: ____'),
               subtitle: const Text('latest pinned message'),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CommPage()),
-                );
+                Navigator.pushNamed(context, '/chat');
               },
             ),
           ),

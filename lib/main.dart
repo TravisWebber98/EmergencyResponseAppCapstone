@@ -17,16 +17,16 @@ void main() async {
   );
 
   // Quick Firestore smoke test (won’t crash app if blocked)
-  if(kDebugMode) {
-    try {
-      await FirebaseFirestore.instance.collection('debug').add({
-        'ok': true,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-      debugPrint("Firestore write OK");
-    } catch (e) {
-      debugPrint("Firestore write FAILED: $e");
-    }
-  }
+  // if(kDebugMode) {
+  //   try {
+  //     await FirebaseFirestore.instance.collection('debug').add({
+  //       'ok': true,
+  //       'createdAt': FieldValue.serverTimestamp(),
+  //     });
+  //     debugPrint("Firestore write OK");
+  //   } catch (e) {
+  //     debugPrint("Firestore write FAILED: $e");
+  //   }
+  // }
   runApp(const MyApp());
 }
