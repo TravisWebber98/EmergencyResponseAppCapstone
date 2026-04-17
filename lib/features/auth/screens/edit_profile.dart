@@ -1,4 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:emergency_response_app/widgets/FormSection.dart';
+import 'package:emergency_response_app/widgets/customTextField.dart';
+import 'package:emergency_response_app/widgets/customButon.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,11 +16,6 @@ class _editProfilePageState extends State<editProfilePage>{
   final _name = TextEditingController();
   final _phone = TextEditingController();
   final _email = TextEditingController();
-
-  // optional location settings:
-  // final _city = TextEditingController();
-  // final _state = TextEditingController();
-  // final _country = TextEditingController();
 
   final _newPassword = TextEditingController();
   final _confirmPassword = TextEditingController();
@@ -146,125 +144,77 @@ class _editProfilePageState extends State<editProfilePage>{
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Edit Profile Page')),
-      body: SingleChildScrollView(
+
+      body: FormSection(
         child: Column(
-          children: <Widget>[
+          children: [
             const Padding(padding: EdgeInsets.only(top: 175.0)),
-
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _name,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Enter Display Name',
-                  hintText: "Enter a new Display Name",
-                ),
-              ),
+            CustomTextField(
+              hintText: "Enter a new Display Name", 
+              label: "Display Name", 
+              controller: _name
             ),
-
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _email,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Enter email',
-                  hintText: "Enter valid email",
-                ),
-              ),
-            ),
-
-
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _phone,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Enter phone number',
-                  hintText: "Enter valid phone number",
-                ),
-              ),
-            ),
-
-            // SPACE FOR LOCATION CHANGES, if needed
-
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _newPassword,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Password',
-                  hintText: 'Enter valid password',
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _confirmPassword,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Confirm Password',
-                  hintText: 'Confirm password',
-                ),
-              ),
-            ),
-
             const SizedBox(height: 16),
+            
+            CustomTextField(
+              hintText: "Enter valid email",
+              label: "Email",
+              controller: _email
+            ),
+            const SizedBox(height: 16),
+            
+            CustomTextField(
+              hintText: "Enter valid phone number",
+              label: "Phone Number",
+              controller: _phone
+            ), 
+            const SizedBox(height: 16),
+            
+            CustomTextField(
+              hintText: "Enter valid password",
+              label: "New Password",
+              controller: _newPassword,
+              isPassword: true,
+            ),
+            const SizedBox(height: 16),
+            
+            CustomTextField(
+              hintText: "Confirm password",
+              label: "Confirm Password",
+              controller: _confirmPassword,
+              isPassword: true,
+            ),  
+            const SizedBox(height: 16),
+            
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(_error!, style: const TextStyle(color: Colors.red)),  
-              ),
+            ),
+            const SizedBox(height: 16),
 
             SizedBox(
-              height: 65,
-              width: 360,
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.lightBlue,
-                    ),
-                    onPressed: _loading ? null : _save,
-                    child: Text(
-                      'Save Changes',
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
-                  ),
-                ),
-              ),
+              width: double.infinity,
+              child: Custombuton(
+                text: 'Save Changes', 
+                onPressed: _save,
+              ),  
             ),
 
+            const SizedBox(height: 16),
             SizedBox(
-              height: 65,
-              width: 360,
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      foregroundColor: Colors.grey[200],
-                    ),
-                    onPressed: _loading ? null : () => Navigator.pop(context),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.black, fontSize: 20),
-                    ),
-                  ),
-                ),
+              width: double.infinity,
+              child: Custombuton(
+                text: 'Cancel',
+                secondaryStyle: true,
+                onPressed: (){
+                  Navigator.pop(context);
+                },
               ),
+
             ),
-          ],
-        ),
-      ),
+          ]
+        ))
     );
   }
 }

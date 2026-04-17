@@ -14,17 +14,6 @@ class AppNav extends StatefulWidget {
 class _AppNavState extends State<AppNav> {
   int currentPageIndex = 1;
 
-  // These used to be globals in your old main.dart.
-  // Keeping them here makes them easy to pass into ProfilePage.
-  // String name = "Guest User";
-  // String phoneNumber = "123-456-7890";
-  // String address = "123 Sample St.";
-  // String city = "__city__";
-  // String state = "XX";
-  // String zipcode = "12345";
-  // String email = "sample@email.com";
-
-
   @override 
   Widget build(BuildContext context){
     final pages =[
@@ -65,20 +54,4 @@ class _AppNavState extends State<AppNav> {
       body: pages[currentPageIndex],
     );
   }
-  // @override
-  // Widget build(BuildContext context) {
-  //   final pages = <Widget>[
-  //     const NotificationsPage(),
-  //     const HomePage(),
-  //     ProfilePage(
-  //       name: name,
-  //       phoneNumber: phoneNumber,
-  //       address: address,
-  //       city: city,
-  //       state: state,
-  //       zipcode: zipcode,
-  //       email: email,
-  //     ),
-  //   ];
-  // }
 }
