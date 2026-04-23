@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+//widgets
+import 'package:emergency_response_app/widgets/customTextField.dart';
+import 'package:emergency_response_app/widgets/customButon.dart';
 
 
 class loginPage extends StatefulWidget {
@@ -35,7 +38,7 @@ class _loginPageState extends State<loginPage>{
 
       if(!id.contains('@')){
         final snap = await FirebaseFirestore
-        .instance.collection('usernames').doc(id.toLowerCase()).get();
+            .instance.collection('usernames').doc(id.toLowerCase()).get();
         if (!snap.exists) throw Exception("Username not found");
         email = snap['email'];
       }
@@ -55,8 +58,8 @@ class _loginPageState extends State<loginPage>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Login Page')),
+          automaticallyImplyLeading: false,
+          title: const Text('Login Page')),
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
@@ -65,77 +68,80 @@ class _loginPageState extends State<loginPage>{
             // username
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10.0),
-              child: TextField(
+              child:  CustomTextField(
                 controller: _identifier,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Email or Username',
-                  hintText: "Enter valid email/username",
-                ),
+                label: 'Email',
+                hintText: 'Enter valid email',
               ),
+
+
+
+
+
+              // child: TextField(
+              //   controller: _identifier,
+              //   decoration: InputDecoration(
+              //     border: OutlineInputBorder(),
+              //     labelText: 'Email',
+              //     hintText: "Enter valid email",
+              //   ),
+              // ),
+
             ),
 
             // password
             Padding(
               padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
+
+
+              child: CustomTextField(
                 controller: _password,
-                obscureText: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Password',
-                  hintText: 'Enter valid password',
-                ),
+                label: 'Password',
+                hintText: "Enter valid password",
+                isPassword: true,
               ),
+
+
+              // child: TextField(
+              //   controller: _password,
+              //   obscureText: true,
+              //   decoration: InputDecoration(
+              //     border: OutlineInputBorder(),
+              //     labelText: 'Password',
+              //     hintText: 'Enter valid password',
+              //   ),
+              // ),
+
             ),
 
+            const SizedBox(height: 16),
             // login button
             SizedBox(
-              height: 65,
-              width: 360,
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: ElevatedButton(
-
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.lightBlue,
-                    ),
-                    onPressed: loading ? null : _login,
-                    child: Text(
-                      loading ? 'Logging in...' : 'Login',
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
-
-                  ),
-                ),
+              width: double.infinity,
+              child: Custombuton(
+                text: 'Login',
+                onPressed: _login,
               ),
-            ),
 
+
+            ),
+            const SizedBox(height: 16),
             // register button
             SizedBox(
-              height: 65,
-              width: 360,
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      foregroundColor: Colors.grey[200],
-                    ),
-                    onPressed: () => Navigator.pushNamed(context, '/register'),
-                    child: const Text(
-                      'Register',
-                      style: TextStyle(color: Colors.black, fontSize: 20),
-                    ),
-                  ),
-                ),
+              width: double.infinity,
+
+              child: Custombuton(
+                  text: 'Register',
+                  secondaryStyle: true,
+                  onPressed: () => Navigator.pushNamed(context, '/register')
               ),
+
+
+
+
             ),
-          if (error != null)
-            Text(error!, style: const TextStyle(color: Colors.red)),
+            if (error != null)
+              Text(error!, style: const TextStyle(color: Colors.red)),
           ],
         ),
       ),

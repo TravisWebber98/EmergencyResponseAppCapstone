@@ -22,26 +22,46 @@ const PostSchema = CollectionSchema(
       name: r'authorId',
       type: IsarType.string,
     ),
-    r'content': PropertySchema(id: 1, name: r'content', type: IsarType.string),
-    r'createdAt': PropertySchema(
+    r'authorName': PropertySchema(
+      id: 1,
+      name: r'authorName',
+      type: IsarType.string,
+    ),
+    r'communityId': PropertySchema(
       id: 2,
+      name: r'communityId',
+      type: IsarType.string,
+    ),
+    r'content': PropertySchema(id: 3, name: r'content', type: IsarType.string),
+    r'createdAt': PropertySchema(
+      id: 4,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'firestoreId': PropertySchema(
-      id: 3,
-      name: r'firestoreId',
+    r'imageUrls': PropertySchema(
+      id: 5,
+      name: r'imageUrls',
+      type: IsarType.stringList,
+    ),
+    r'imageUrlsRaw': PropertySchema(
+      id: 6,
+      name: r'imageUrlsRaw',
       type: IsarType.string,
     ),
-    r'isSynced': PropertySchema(id: 4, name: r'isSynced', type: IsarType.bool),
-    r'title': PropertySchema(id: 5, name: r'title', type: IsarType.string),
+    r'isSynced': PropertySchema(id: 7, name: r'isSynced', type: IsarType.bool),
+    r'postId': PropertySchema(id: 8, name: r'postId', type: IsarType.string),
+    r'updatedAt': PropertySchema(
+      id: 9,
+      name: r'updatedAt',
+      type: IsarType.dateTime,
+    ),
   },
 
   estimateSize: _postEstimateSize,
   serialize: _postSerialize,
   deserialize: _postDeserialize,
   deserializeProp: _postDeserializeProp,
-  idName: r'id',
+  idName: r'isarId',
   indexes: {},
   links: {},
   embeddedSchemas: {},
@@ -58,30 +78,19 @@ int _postEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.authorId.length * 3;
+  bytesCount += 3 + object.authorName.length * 3;
+  bytesCount += 3 + object.communityId.length * 3;
+  bytesCount += 3 + object.content.length * 3;
+  bytesCount += 3 + object.imageUrls.length * 3;
   {
-    final value = object.authorId;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
+    for (var i = 0; i < object.imageUrls.length; i++) {
+      final value = object.imageUrls[i];
+      bytesCount += value.length * 3;
     }
   }
-  {
-    final value = object.content;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.firestoreId;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.title;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.imageUrlsRaw.length * 3;
+  bytesCount += 3 + object.postId.length * 3;
   return bytesCount;
 }
 
@@ -92,11 +101,15 @@ void _postSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.authorId);
-  writer.writeString(offsets[1], object.content);
-  writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeString(offsets[3], object.firestoreId);
-  writer.writeBool(offsets[4], object.isSynced);
-  writer.writeString(offsets[5], object.title);
+  writer.writeString(offsets[1], object.authorName);
+  writer.writeString(offsets[2], object.communityId);
+  writer.writeString(offsets[3], object.content);
+  writer.writeDateTime(offsets[4], object.createdAt);
+  writer.writeStringList(offsets[5], object.imageUrls);
+  writer.writeString(offsets[6], object.imageUrlsRaw);
+  writer.writeBool(offsets[7], object.isSynced);
+  writer.writeString(offsets[8], object.postId);
+  writer.writeDateTime(offsets[9], object.updatedAt);
 }
 
 Post _postDeserialize(
@@ -105,14 +118,19 @@ Post _postDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Post();
-  object.authorId = reader.readStringOrNull(offsets[0]);
-  object.content = reader.readStringOrNull(offsets[1]);
-  object.createdAt = reader.readDateTimeOrNull(offsets[2]);
-  object.firestoreId = reader.readStringOrNull(offsets[3]);
-  object.id = id;
-  object.isSynced = reader.readBool(offsets[4]);
-  object.title = reader.readStringOrNull(offsets[5]);
+  final object = Post(
+    authorId: reader.readString(offsets[0]),
+    authorName: reader.readString(offsets[1]),
+    communityId: reader.readString(offsets[2]),
+    content: reader.readString(offsets[3]),
+    createdAt: reader.readDateTime(offsets[4]),
+    isSynced: reader.readBoolOrNull(offsets[7]) ?? false,
+    postId: reader.readString(offsets[8]),
+    updatedAt: reader.readDateTime(offsets[9]),
+  );
+  object.imageUrls = reader.readStringList(offsets[5]) ?? [];
+  object.imageUrlsRaw = reader.readString(offsets[6]);
+  object.isarId = id;
   return object;
 }
 
@@ -124,24 +142,32 @@ P _postDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readBoolOrNull(offset) ?? false) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Id _postGetId(Post object) {
-  return object.id;
+  return object.isarId;
 }
 
 List<IsarLinkBase<dynamic>> _postGetLinks(Post object) {
@@ -149,11 +175,11 @@ List<IsarLinkBase<dynamic>> _postGetLinks(Post object) {
 }
 
 void _postAttach(IsarCollection<dynamic> col, Id id, Post object) {
-  object.id = id;
+  object.isarId = id;
 }
 
 extension PostQueryWhereSort on QueryBuilder<Post, Post, QWhere> {
-  QueryBuilder<Post, Post, QAfterWhere> anyId() {
+  QueryBuilder<Post, Post, QAfterWhere> anyIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
@@ -161,68 +187,70 @@ extension PostQueryWhereSort on QueryBuilder<Post, Post, QWhere> {
 }
 
 extension PostQueryWhere on QueryBuilder<Post, Post, QWhereClause> {
-  QueryBuilder<Post, Post, QAfterWhereClause> idEqualTo(Id id) {
+  QueryBuilder<Post, Post, QAfterWhereClause> isarIdEqualTo(Id isarId) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
+      return query.addWhereClause(
+        IdWhereClause.between(lower: isarId, upper: isarId),
+      );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<Post, Post, QAfterWhereClause> isarIdNotEqualTo(Id isarId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
             )
             .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
             );
       } else {
         return query
             .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
             )
             .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
             );
       }
     });
   }
 
-  QueryBuilder<Post, Post, QAfterWhereClause> idGreaterThan(
-    Id id, {
+  QueryBuilder<Post, Post, QAfterWhereClause> isarIdGreaterThan(
+    Id isarId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        IdWhereClause.greaterThan(lower: id, includeLower: include),
+        IdWhereClause.greaterThan(lower: isarId, includeLower: include),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterWhereClause> idLessThan(
-    Id id, {
+  QueryBuilder<Post, Post, QAfterWhereClause> isarIdLessThan(
+    Id isarId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        IdWhereClause.lessThan(upper: id, includeUpper: include),
+        IdWhereClause.lessThan(upper: isarId, includeUpper: include),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterWhereClause> idBetween(
-    Id lowerId,
-    Id upperId, {
+  QueryBuilder<Post, Post, QAfterWhereClause> isarIdBetween(
+    Id lowerIsarId,
+    Id upperIsarId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.between(
-          lower: lowerId,
+          lower: lowerIsarId,
           includeLower: includeLower,
-          upper: upperId,
+          upper: upperIsarId,
           includeUpper: includeUpper,
         ),
       );
@@ -231,24 +259,8 @@ extension PostQueryWhere on QueryBuilder<Post, Post, QWhereClause> {
 }
 
 extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
-  QueryBuilder<Post, Post, QAfterFilterCondition> authorIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'authorId'),
-      );
-    });
-  }
-
-  QueryBuilder<Post, Post, QAfterFilterCondition> authorIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'authorId'),
-      );
-    });
-  }
-
   QueryBuilder<Post, Post, QAfterFilterCondition> authorIdEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -263,7 +275,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> authorIdGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -280,7 +292,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> authorIdLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -297,8 +309,8 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> authorIdBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -393,24 +405,300 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> contentIsNull() {
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'content'),
+        FilterCondition.equalTo(
+          property: r'authorName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> contentIsNotNull() {
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'content'),
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'authorName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'authorName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'authorName',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'authorName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'authorName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'authorName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'authorName',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'authorName', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> authorNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'authorName', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'communityId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'communityId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'communityId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'communityId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'communityId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'communityId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'communityId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'communityId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'communityId', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> communityIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'communityId', value: ''),
       );
     });
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> contentEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -425,7 +713,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> contentGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -442,7 +730,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> contentLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -459,8 +747,8 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> contentBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -555,24 +843,8 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> createdAtIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'createdAt'),
-      );
-    });
-  }
-
-  QueryBuilder<Post, Post, QAfterFilterCondition> createdAtIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'createdAt'),
-      );
-    });
-  }
-
   QueryBuilder<Post, Post, QAfterFilterCondition> createdAtEqualTo(
-    DateTime? value,
+    DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -582,7 +854,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> createdAtGreaterThan(
-    DateTime? value, {
+    DateTime value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -597,7 +869,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> createdAtLessThan(
-    DateTime? value, {
+    DateTime value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -612,8 +884,8 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
   }
 
   QueryBuilder<Post, Post, QAfterFilterCondition> createdAtBetween(
-    DateTime? lower,
-    DateTime? upper, {
+    DateTime lower,
+    DateTime upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -630,30 +902,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'firestoreId'),
-      );
-    });
-  }
-
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'firestoreId'),
-      );
-    });
-  }
-
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdEqualTo(
-    String? value, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementEqualTo(
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
-          property: r'firestoreId',
+          property: r'imageUrls',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -661,8 +917,8 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdGreaterThan(
-    String? value, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementGreaterThan(
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -670,7 +926,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'firestoreId',
+          property: r'imageUrls',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -678,8 +934,8 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdLessThan(
-    String? value, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementLessThan(
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -687,7 +943,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'firestoreId',
+          property: r'imageUrls',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -695,9 +951,9 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdBetween(
-    String? lower,
-    String? upper, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementBetween(
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -705,7 +961,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'firestoreId',
+          property: r'imageUrls',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -716,14 +972,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdStartsWith(
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
-          property: r'firestoreId',
+          property: r'imageUrls',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -731,14 +987,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdEndsWith(
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
-          property: r'firestoreId',
+          property: r'imageUrls',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -746,14 +1002,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdContains(
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementContains(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
-          property: r'firestoreId',
+          property: r'imageUrls',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -761,14 +1017,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdMatches(
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementMatches(
     String pattern, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
-          property: r'firestoreId',
+          property: r'imageUrls',
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -776,75 +1032,219 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdIsEmpty() {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'firestoreId', value: ''),
+        FilterCondition.equalTo(property: r'imageUrls', value: ''),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> firestoreIdIsNotEmpty() {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'firestoreId', value: ''),
+        FilterCondition.greaterThan(property: r'imageUrls', value: ''),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> idEqualTo(Id value) {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsLengthEqualTo(
+    int length,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'id', value: value),
-      );
+      return query.listLength(r'imageUrls', length, true, length, true);
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> idGreaterThan(
-    Id value, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'imageUrls', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'imageUrls', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsLengthLessThan(
+    int length, {
     bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'imageUrls', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(r'imageUrls', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'imageUrls',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'imageUrlsRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'id',
+          property: r'imageUrlsRaw',
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> idLessThan(
-    Id value, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawLessThan(
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'id',
+          property: r'imageUrlsRaw',
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawBetween(
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'id',
+          property: r'imageUrlsRaw',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
           includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
         ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'imageUrlsRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'imageUrlsRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'imageUrlsRaw',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'imageUrlsRaw',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'imageUrlsRaw', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsRawIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'imageUrlsRaw', value: ''),
       );
     });
   }
@@ -857,30 +1257,71 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleIsNull() {
+  QueryBuilder<Post, Post, QAfterFilterCondition> isarIdEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'title'),
+        FilterCondition.equalTo(property: r'isarId', value: value),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleIsNotNull() {
+  QueryBuilder<Post, Post, QAfterFilterCondition> isarIdGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'title'),
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'isarId',
+          value: value,
+        ),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleEqualTo(
-    String? value, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> isarIdLessThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'isarId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> isarIdBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'isarId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdEqualTo(
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
-          property: r'title',
+          property: r'postId',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -888,8 +1329,8 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleGreaterThan(
-    String? value, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdGreaterThan(
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -897,7 +1338,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'title',
+          property: r'postId',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -905,8 +1346,8 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleLessThan(
-    String? value, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdLessThan(
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -914,7 +1355,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'title',
+          property: r'postId',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -922,9 +1363,9 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleBetween(
-    String? lower,
-    String? upper, {
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdBetween(
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -932,7 +1373,7 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'title',
+          property: r'postId',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -943,14 +1384,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleStartsWith(
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
-          property: r'title',
+          property: r'postId',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -958,14 +1399,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleEndsWith(
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
-          property: r'title',
+          property: r'postId',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -973,14 +1414,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleContains(
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdContains(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
-          property: r'title',
+          property: r'postId',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -988,14 +1429,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleMatches(
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdMatches(
     String pattern, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
-          property: r'title',
+          property: r'postId',
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -1003,18 +1444,77 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleIsEmpty() {
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'title', value: ''),
+        FilterCondition.equalTo(property: r'postId', value: ''),
       );
     });
   }
 
-  QueryBuilder<Post, Post, QAfterFilterCondition> titleIsNotEmpty() {
+  QueryBuilder<Post, Post, QAfterFilterCondition> postIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'title', value: ''),
+        FilterCondition.greaterThan(property: r'postId', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> updatedAtEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'updatedAt', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> updatedAtGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'updatedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> updatedAtLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'updatedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> updatedAtBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'updatedAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
       );
     });
   }
@@ -1034,6 +1534,30 @@ extension PostQuerySortBy on QueryBuilder<Post, Post, QSortBy> {
   QueryBuilder<Post, Post, QAfterSortBy> sortByAuthorIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'authorId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByAuthorName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByAuthorNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByCommunityId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'communityId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByCommunityIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'communityId', Sort.desc);
     });
   }
 
@@ -1061,15 +1585,15 @@ extension PostQuerySortBy on QueryBuilder<Post, Post, QSortBy> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterSortBy> sortByFirestoreId() {
+  QueryBuilder<Post, Post, QAfterSortBy> sortByImageUrlsRaw() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firestoreId', Sort.asc);
+      return query.addSortBy(r'imageUrlsRaw', Sort.asc);
     });
   }
 
-  QueryBuilder<Post, Post, QAfterSortBy> sortByFirestoreIdDesc() {
+  QueryBuilder<Post, Post, QAfterSortBy> sortByImageUrlsRawDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firestoreId', Sort.desc);
+      return query.addSortBy(r'imageUrlsRaw', Sort.desc);
     });
   }
 
@@ -1085,15 +1609,27 @@ extension PostQuerySortBy on QueryBuilder<Post, Post, QSortBy> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterSortBy> sortByTitle() {
+  QueryBuilder<Post, Post, QAfterSortBy> sortByPostId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'title', Sort.asc);
+      return query.addSortBy(r'postId', Sort.asc);
     });
   }
 
-  QueryBuilder<Post, Post, QAfterSortBy> sortByTitleDesc() {
+  QueryBuilder<Post, Post, QAfterSortBy> sortByPostIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'title', Sort.desc);
+      return query.addSortBy(r'postId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByUpdatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.desc);
     });
   }
 }
@@ -1108,6 +1644,30 @@ extension PostQuerySortThenBy on QueryBuilder<Post, Post, QSortThenBy> {
   QueryBuilder<Post, Post, QAfterSortBy> thenByAuthorIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'authorId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByAuthorName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByAuthorNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'authorName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByCommunityId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'communityId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByCommunityIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'communityId', Sort.desc);
     });
   }
 
@@ -1135,27 +1695,15 @@ extension PostQuerySortThenBy on QueryBuilder<Post, Post, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterSortBy> thenByFirestoreId() {
+  QueryBuilder<Post, Post, QAfterSortBy> thenByImageUrlsRaw() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firestoreId', Sort.asc);
+      return query.addSortBy(r'imageUrlsRaw', Sort.asc);
     });
   }
 
-  QueryBuilder<Post, Post, QAfterSortBy> thenByFirestoreIdDesc() {
+  QueryBuilder<Post, Post, QAfterSortBy> thenByImageUrlsRawDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'firestoreId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Post, Post, QAfterSortBy> thenById() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Post, Post, QAfterSortBy> thenByIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.desc);
+      return query.addSortBy(r'imageUrlsRaw', Sort.desc);
     });
   }
 
@@ -1171,15 +1719,39 @@ extension PostQuerySortThenBy on QueryBuilder<Post, Post, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Post, Post, QAfterSortBy> thenByTitle() {
+  QueryBuilder<Post, Post, QAfterSortBy> thenByIsarId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'title', Sort.asc);
+      return query.addSortBy(r'isarId', Sort.asc);
     });
   }
 
-  QueryBuilder<Post, Post, QAfterSortBy> thenByTitleDesc() {
+  QueryBuilder<Post, Post, QAfterSortBy> thenByIsarIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'title', Sort.desc);
+      return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByPostId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'postId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByPostIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'postId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByUpdatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.desc);
     });
   }
 }
@@ -1190,6 +1762,22 @@ extension PostQueryWhereDistinct on QueryBuilder<Post, Post, QDistinct> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'authorId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Post, Post, QDistinct> distinctByAuthorName({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'authorName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Post, Post, QDistinct> distinctByCommunityId({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'communityId', caseSensitive: caseSensitive);
     });
   }
 
@@ -1207,11 +1795,17 @@ extension PostQueryWhereDistinct on QueryBuilder<Post, Post, QDistinct> {
     });
   }
 
-  QueryBuilder<Post, Post, QDistinct> distinctByFirestoreId({
+  QueryBuilder<Post, Post, QDistinct> distinctByImageUrls() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'imageUrls');
+    });
+  }
+
+  QueryBuilder<Post, Post, QDistinct> distinctByImageUrlsRaw({
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'firestoreId', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'imageUrlsRaw', caseSensitive: caseSensitive);
     });
   }
 
@@ -1221,43 +1815,67 @@ extension PostQueryWhereDistinct on QueryBuilder<Post, Post, QDistinct> {
     });
   }
 
-  QueryBuilder<Post, Post, QDistinct> distinctByTitle({
+  QueryBuilder<Post, Post, QDistinct> distinctByPostId({
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'title', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'postId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Post, Post, QDistinct> distinctByUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'updatedAt');
     });
   }
 }
 
 extension PostQueryProperty on QueryBuilder<Post, Post, QQueryProperty> {
-  QueryBuilder<Post, int, QQueryOperations> idProperty() {
+  QueryBuilder<Post, int, QQueryOperations> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
+      return query.addPropertyName(r'isarId');
     });
   }
 
-  QueryBuilder<Post, String?, QQueryOperations> authorIdProperty() {
+  QueryBuilder<Post, String, QQueryOperations> authorIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'authorId');
     });
   }
 
-  QueryBuilder<Post, String?, QQueryOperations> contentProperty() {
+  QueryBuilder<Post, String, QQueryOperations> authorNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'authorName');
+    });
+  }
+
+  QueryBuilder<Post, String, QQueryOperations> communityIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'communityId');
+    });
+  }
+
+  QueryBuilder<Post, String, QQueryOperations> contentProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'content');
     });
   }
 
-  QueryBuilder<Post, DateTime?, QQueryOperations> createdAtProperty() {
+  QueryBuilder<Post, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
     });
   }
 
-  QueryBuilder<Post, String?, QQueryOperations> firestoreIdProperty() {
+  QueryBuilder<Post, List<String>, QQueryOperations> imageUrlsProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'firestoreId');
+      return query.addPropertyName(r'imageUrls');
+    });
+  }
+
+  QueryBuilder<Post, String, QQueryOperations> imageUrlsRawProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'imageUrlsRaw');
     });
   }
 
@@ -1267,9 +1885,15 @@ extension PostQueryProperty on QueryBuilder<Post, Post, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Post, String?, QQueryOperations> titleProperty() {
+  QueryBuilder<Post, String, QQueryOperations> postIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'title');
+      return query.addPropertyName(r'postId');
+    });
+  }
+
+  QueryBuilder<Post, DateTime, QQueryOperations> updatedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'updatedAt');
     });
   }
 }

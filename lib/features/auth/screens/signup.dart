@@ -1,6 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+// Widgets
+import 'package:emergency_response_app/widgets/customDropdown.dart';
+import 'package:emergency_response_app/widgets/states_list.dart';
+import 'package:emergency_response_app/widgets/customButon.dart';
+import 'package:emergency_response_app/widgets/customTextField.dart';
 // import '../auth_service.dart';
 // import '../profile_service.dart';
 
@@ -14,6 +19,8 @@ class registerPage extends StatefulWidget {
 }
 
 class _registerPageState extends State<registerPage>{
+  final _formKey = GlobalKey<FormState>();
+
   final _displayName = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
@@ -21,18 +28,12 @@ class _registerPageState extends State<registerPage>{
   final _phone = TextEditingController();
   final _city = TextEditingController();
   final _state = TextEditingController();
-  final _country = TextEditingController();
+
   final _businessName = TextEditingController();
 
+  String? selectedState;
   String? error;
   bool loading = false;
-  
-  // @override
-  // void dispose(){
-  //   _email.dispose();
-  //   _password.dispose();
-  //   super.dispose();
-  // }
 
   Future<void> _register() async {
     setState(() {
@@ -45,56 +46,34 @@ class _registerPageState extends State<registerPage>{
         throw Exception ("Passwords do not match");
       }
 
-      // for signing up with username would create a seperate collection
-
-      // final username = _username.text.trim().toLowerCase();
-      // final usernameDoc = FirebaseFirestore
-      //   .instance
-      //   .collection('usernames')
-      //   .doc(username);
-
-      // if ((await usernameDoc.get()).exists) {
-      //   throw Exception("Username already exists.");
-      // }
-
       final cred = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: _email.text.trim(), password: _password.text);
-
+          .createUserWithEmailAndPassword(email: _email.text.trim(), password: _password.text);
       final uid = cred.user!.uid;
-      
-      
+
       await FirebaseFirestore.instance.collection('accounts').doc(uid).set({
         'accountType': 'user',
         'banUntil': null, //timestamp
         'businessName:': _businessName.text.trim(),
         'city': _city.text.trim(),
-        'country': _country.text.trim(),
+        'country': 'United States',
         'createdAt': FieldValue.serverTimestamp(), //timestamp
 
-        'display': _displayName.text.trim(), 
+        'display': _displayName.text.trim(),
         'email': _email.text.trim(),
         'isBanned': false,
         'phone': _phone.text.trim(),
-        'state': _state.text.trim(),
-        'updatedAt': FieldValue.serverTimestamp(), //timestamp, 
+        'state': selectedState,
+        'updatedAt': FieldValue.serverTimestamp(), //timestamp,
         'verified': false,
       });
-
-      // for also setting up sign up with username:
-
-      // await usernameDoc.set({
-      //   'uid': uid,
-      //   'email': _email.text.trim(),
-      // });
 
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, '/app', (_) => false);
     } catch(e) {
       setState(() => error = e.toString());
     } finally {
-      if (mounted) {
+      if (mounted)
         setState (() => loading = false);
-      }
     }
   }
 
@@ -102,177 +81,101 @@ class _registerPageState extends State<registerPage>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Register Page')),
+          automaticallyImplyLeading: false,
+          title: const Text('Register Page')),
       body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            const Padding(padding: EdgeInsets.only(top: 15.0)),
-
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _displayName,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Enter Display Name',
-                  hintText: "Enter a display name",
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                CustomTextField(
+                  label: 'Display Name',
+                  hintText: 'Display Name',
+                  controller: _displayName,
                 ),
-              ),
-            ),
+                const SizedBox(height: 16),
 
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _email,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Enter Email',
-                  hintText: "Enter valid email",
+                CustomTextField(
+                  label: 'Email',
+                  hintText: 'Email',
+                  controller: _email,
                 ),
-              ),
-            ),
+                const SizedBox(height: 16),
 
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _phone,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Enter Phone Number',
-                  hintText: "Enter valid phone number",
+                CustomTextField(
+                  label: 'Phone Number',
+                  hintText: 'Phone Number',
+                  controller: _phone,
                 ),
-              ),
-            ),
+                const SizedBox(height: 16),
 
-            //businessName
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _businessName,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Enter Business Name',
-                  hintText: "Leave empty if not any",
+                CustomTextField(
+                  label: 'Business Name',
+                  hintText: 'Leave blank if not applicable',
+                  controller: _businessName,
                 ),
-              ),
-            ),
+                const SizedBox(height: 16),
 
-            // location add-ons textfields:
-            // city
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _city,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'City',
-                  hintText: "Enter your city",
+                CustomTextField(
+                  label: 'City',
+                  hintText: 'City',
+                  controller: _city,
                 ),
-              ),
-            ),
+                const SizedBox(height: 16),
 
-            // state
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _state,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'State',
-                  hintText: "Enter your state",
+                CustomDropdown(
+                    label: 'State',
+                    items: StatesList,
+                    value: selectedState,
+                    onChanged: (value){
+                      setState(() {
+                        selectedState = value;
+                      });
+                    }
                 ),
-              ),
-            ),
+                const SizedBox(height: 16),
 
-            // country
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _country,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Country',
-                  hintText: "Enter your Country",
+                CustomTextField(
+                  label: 'Password',
+                  hintText: 'Password',
+                  controller: _password,
+                  isPassword: true,
                 ),
-              ),
-            ),
-
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _password,
-                obscureText: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Password',
-                  hintText: 'Enter a valid password',
-                ),
-              ),
-            ),
-
-
-            Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-              child: TextField(
-                controller: _confirmPassword,
-                obscureText: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Confirm Password',
+                const SizedBox(height: 16),
+                CustomTextField(
+                  label: 'Confirm Password',
                   hintText: 'Confirm Password',
+                  controller: _confirmPassword,
+                  isPassword: true,
                 ),
-              ),
-            ),
+                const SizedBox(height: 24),
 
-            SizedBox(
-              height: 65,
-              width: 360,
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.lightBlue,
-                    ),
-                    onPressed: 
-                      loading ? null : _register,
-                    child: const Text(
-                      'Register',
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
-                  ),
+                SizedBox(
+                    width: double.infinity,
+                    child: Custombuton(
+                        text: 'Sign Up',
+                        onPressed: _register
+                    )
                 ),
-              ),
-            ),
-
-            SizedBox(
-              height: 65,
-              width: 360,
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      foregroundColor: Colors.grey[200],
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const loginPage()),
-                      );
-                    },
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.black, fontSize: 20),
-                    ),
-                  ),
+                const SizedBox(height: 16),
+                SizedBox(
+                    width: double.infinity,
+                    child: Custombuton(
+                      text: 'Cancel',
+                      secondaryStyle: true,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const loginPage()),
+                        );
+                      },
+                    )
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

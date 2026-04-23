@@ -2,6 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:emergency_response_app/models/community.dart';
 import 'package:emergency_response_app/repositories/community/community_repository.dart';
+import 'package:emergency_response_app/features/community/screens/community_board.dart';
+import 'package:emergency_response_app/features/community/screens/create_community.dart';
+
 
 class CommPage extends StatefulWidget {
   final CommunityRepository repository;
@@ -82,6 +85,22 @@ class _CommPageState extends State<CommPage> {
       appBar: AppBar(
         title: const Text("Communities"),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final created = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const CreateCommunityPage(),
+            ),
+          );
+          // Refresh the list if a community was created
+          if (created == true) {
+            loadCommunities();
+          }
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Create'),
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -112,8 +131,11 @@ class _CommPageState extends State<CommPage> {
                   subtitle:
                   Text('${community.city}, ${community.state}'),
                   onTap: () {
-                    debugPrint(
-                      'Open board for ${community.communityId}',
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CommunityBoardPage(community: community),
+                      ),
                     );
                   },
                 ),

@@ -12,6 +12,7 @@ class IsarService {
       [
         CommunitySchema,
         AccountSchema,
+        PostSchema,
         // add more schemas here later
       ],
       directory: dir.path,
