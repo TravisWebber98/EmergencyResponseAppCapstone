@@ -12,7 +12,8 @@ class ProfilePage extends StatelessWidget {
     super.key,
   });
 
-  String formatPhoneNumber(String phone) {
+  String formatPhoneNumber(String? phone) {
+    if (phone == null || phone.isEmpty) return '';
     // Remove anything that isn't a digit
     final digits = phone.replaceAll(RegExp(r'\D'), '');
 
@@ -30,9 +31,19 @@ class ProfilePage extends StatelessWidget {
     return StreamBuilder(
       stream: FirebaseFirestore.instance.collection('accounts').doc(user!.uid)
           .snapshots(), builder: (context, snap){
+      // Show a loading spinner on the very first frame so we don't
+      // render with an empty map (which previously caused a red error
+      // screen when null fields were passed to formatters).
+      if (snap.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      if (snap.hasError) {
+        return Center(child: Text('Error loading profile: ${snap.error}'));
+      }
       final data = snap.data?.data() ?? {};
 
-      return Column(
+      return SingleChildScrollView(
+        child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 20),
@@ -60,7 +71,7 @@ class ProfilePage extends StatelessWidget {
           // Text('Email: ${data['email'] ?? ''}', style: theme.textTheme.bodyLarge),
           const SizedBox(height: 20),
 
-          ProfileInfo(title: 'Phone: ', value: formatPhoneNumber(data['phone']) ?? ''),
+          ProfileInfo(title: 'Phone: ', value: formatPhoneNumber(data['phone'] as String?)),
           // Text('Phone: ${data['phone'] ?? ''}', style: theme.textTheme.bodyLarge),
           const SizedBox(height: 20),
           const SizedBox(width: double.infinity),
@@ -115,6 +126,7 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
         ],
+      ),
       );
     },
     );

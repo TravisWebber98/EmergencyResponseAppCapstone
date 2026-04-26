@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:emergency_response_app/features/messaging/screens/messaging_page.dart';
 
 import 'notifications.dart';
 import 'home.dart';
@@ -19,6 +20,7 @@ class _AppNavState extends State<AppNav> {
     final pages =[
       const NotificationsPage(),
       const HomePage(),
+      const MessagingPage(),
       const ProfilePage(),
     ];
 
@@ -27,6 +29,7 @@ class _AppNavState extends State<AppNav> {
           automaticallyImplyLeading: false,
           title: const Text("App Testing")),
       bottomNavigationBar: NavigationBar(
+
         selectedIndex: currentPageIndex,
         onDestinationSelected: (i) => setState(()
         => currentPageIndex = i
@@ -43,6 +46,10 @@ class _AppNavState extends State<AppNav> {
             selectedIcon: Icon(Icons.home),
             icon: Icon(Icons.home_outlined),
             label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.message),
+            label: 'Messages',
           ),
           NavigationDestination(
             icon: Icon(Icons.person),

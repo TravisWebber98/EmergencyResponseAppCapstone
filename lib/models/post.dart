@@ -13,6 +13,7 @@ class Post {
     required this.content,
     required this.createdAt,
     required this.updatedAt,
+    this.isUrgent = false,
     this.isSynced = false,
   });
 
@@ -33,6 +34,10 @@ class Post {
   DateTime createdAt;
   DateTime updatedAt;
 
+  // Whether this post was flagged urgent at the time it was posted/edited.
+  // Drives the red badge + border in the feed and the notification fan-out.
+  bool isUrgent;
+
   bool isSynced;
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -48,6 +53,7 @@ class Post {
       updatedAt: json['updatedAt'] is DateTime
           ? json['updatedAt'] as DateTime
           : (json['updatedAt'] as Timestamp).toDate(),
+      isUrgent: (json['isUrgent'] ?? false) as bool,
       isSynced: true,
     );
     post.imageUrls = List<String>.from(json['imageUrls'] ?? []);
@@ -64,6 +70,7 @@ class Post {
       'imageUrls': imageUrls,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'isUrgent': isUrgent,
     };
   }
 }

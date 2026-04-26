@@ -1,25 +1,34 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:emergency_response_app/models/post.dart';
 import 'package:emergency_response_app/repositories/post/post_repository.dart';
 
-class CreatePostPage extends StatefulWidget {
-  final String communityId;
+//Edit an existing post. Lets the author change text, add or remove
+//images, and toggle urgency. Submitting calls
+//[PostRepository.updatePost] and pops with `true` so the caller can
+//refresh.
+class EditPostPage extends StatefulWidget {
+  final Post post;
 
-  const CreatePostPage({super.key, required this.communityId});
+  const EditPostPage({super.key, required this.post});
 
   @override
-  State<CreatePostPage> createState() => _CreatePostPageState();
+  State<EditPostPage> createState() => _EditPostPageState();
 }
 
-class _CreatePostPageState extends State<CreatePostPage> {
-  final _content = TextEditingController();
+class _EditPostPageState extends State<EditPostPage> {
+  late final TextEditingController _content;
   final _picker = ImagePicker();
-  final List<File> _selectedImages = [];
+
+  // Existing image URLs the user has chosen to keep.
+  late List<String> _keptImageUrls;
+  // Newly-picked local files to upload on save.
+  final List<File> _newImages = [];
+
+  late bool _isUrgent;
   bool _loading = false;
-  bool _isUrgent = false;
   String? _error;
 
   late final PostRepository _repository;
@@ -27,9 +36,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
   @override
   void initState() {
     super.initState();
-    _repository = PostRepository(
-      firestore: FirebaseFirestore.instance,
-    );
+    _content = TextEditingController(text: widget.post.content);
+    _keptImageUrls = List<String>.from(widget.post.imageUrls);
+    _isUrgent = widget.post.isUrgent;
+    _repository = PostRepository(firestore: FirebaseFirestore.instance);
   }
 
   @override
@@ -42,12 +52,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
     final picked = await _picker.pickMultiImage();
     if (picked.isNotEmpty) {
       setState(() {
-        _selectedImages.addAll(picked.map((x) => File(x.path)));
+        _newImages.addAll(picked.map((x) => File(x.path)));
       });
     }
   }
 
-  Future<void> _submit() async {
+  Future<void> _save() async {
     if (_content.text.trim().isEmpty) {
       setState(() => _error = 'Post content cannot be empty.');
       return;
@@ -59,24 +69,13 @@ class _CreatePostPageState extends State<CreatePostPage> {
     });
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception('Not logged in.');
-
-      // Get display name from Firestore account
-      final accountDoc = await FirebaseFirestore.instance
-          .collection('accounts')
-          .doc(user.uid)
-          .get();
-      final authorName =
-          accountDoc.data()?['display'] ?? user.email ?? 'Unknown';
-
-      await _repository.createPost(
-        communityId: widget.communityId,
-        authorId: user.uid,
-        authorName: authorName,
+      await _repository.updatePost(
+        communityId: widget.post.communityId,
+        postId: widget.post.postId,
         content: _content.text.trim(),
-        images: _selectedImages,
         isUrgent: _isUrgent,
+        keptImageUrls: _keptImageUrls,
+        newImages: _newImages,
       );
 
       if (!mounted) return;
@@ -92,24 +91,24 @@ class _CreatePostPageState extends State<CreatePostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Post'),
+        title: const Text('Edit Post'),
         actions: [
           TextButton(
-            onPressed: _loading ? null : _submit,
+            onPressed: _loading ? null : _save,
             child: _loading
                 ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Text(
-              'Post',
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
+                    'Save',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
           ),
         ],
       ),
@@ -129,21 +128,26 @@ class _CreatePostPageState extends State<CreatePostPage> {
             ),
             const SizedBox(height: 16),
 
-            // Selected images preview
-            if (_selectedImages.isNotEmpty) ...[
+            // Existing images the user can remove individually.
+            if (_keptImageUrls.isNotEmpty) ...[
+              const Text(
+                'Current images',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
               SizedBox(
                 height: 100,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: _selectedImages.length,
+                  itemCount: _keptImageUrls.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     return Stack(
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            _selectedImages[index],
+                          child: Image.network(
+                            _keptImageUrls[index],
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
@@ -154,7 +158,62 @@ class _CreatePostPageState extends State<CreatePostPage> {
                           right: 4,
                           child: GestureDetector(
                             onTap: () {
-                              setState(() => _selectedImages.removeAt(index));
+                              setState(
+                                () => _keptImageUrls.removeAt(index),
+                              );
+                            },
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Newly picked, not-yet-uploaded images.
+            if (_newImages.isNotEmpty) ...[
+              const Text(
+                'New images',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 100,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _newImages.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    return Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            _newImages[index],
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() => _newImages.removeAt(index));
                             },
                             child: Container(
                               decoration: const BoxDecoration(
@@ -185,8 +244,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
             const SizedBox(height: 16),
 
-            //Urgent flag. When on, every other community member receives
-            //an in-app notification when this post is created.
+            // Urgent toggle. Note: re-flagging an existing post as urgent
+            // does NOT re-fire notifications — only fresh urgent posts do.
             Card(
               color: _isUrgent ? Colors.red.shade50 : null,
               shape: RoundedRectangleBorder(
@@ -197,7 +256,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
               child: SwitchListTile(
                 value: _isUrgent,
-                activeThumbColor: Colors.red,
+                activeColor: Colors.red,
                 onChanged: (v) => setState(() => _isUrgent = v),
                 title: Row(
                   children: [
@@ -213,7 +272,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   ],
                 ),
                 subtitle: const Text(
-                  'All community members will be notified.',
+                  'Editing urgency will not send a new notification.',
                   style: TextStyle(fontSize: 12),
                 ),
               ),

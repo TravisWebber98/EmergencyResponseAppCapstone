@@ -49,9 +49,10 @@ const PostSchema = CollectionSchema(
       type: IsarType.string,
     ),
     r'isSynced': PropertySchema(id: 7, name: r'isSynced', type: IsarType.bool),
-    r'postId': PropertySchema(id: 8, name: r'postId', type: IsarType.string),
+    r'isUrgent': PropertySchema(id: 8, name: r'isUrgent', type: IsarType.bool),
+    r'postId': PropertySchema(id: 9, name: r'postId', type: IsarType.string),
     r'updatedAt': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -108,8 +109,9 @@ void _postSerialize(
   writer.writeStringList(offsets[5], object.imageUrls);
   writer.writeString(offsets[6], object.imageUrlsRaw);
   writer.writeBool(offsets[7], object.isSynced);
-  writer.writeString(offsets[8], object.postId);
-  writer.writeDateTime(offsets[9], object.updatedAt);
+  writer.writeBool(offsets[8], object.isUrgent);
+  writer.writeString(offsets[9], object.postId);
+  writer.writeDateTime(offsets[10], object.updatedAt);
 }
 
 Post _postDeserialize(
@@ -125,8 +127,9 @@ Post _postDeserialize(
     content: reader.readString(offsets[3]),
     createdAt: reader.readDateTime(offsets[4]),
     isSynced: reader.readBoolOrNull(offsets[7]) ?? false,
-    postId: reader.readString(offsets[8]),
-    updatedAt: reader.readDateTime(offsets[9]),
+    isUrgent: reader.readBoolOrNull(offsets[8]) ?? false,
+    postId: reader.readString(offsets[9]),
+    updatedAt: reader.readDateTime(offsets[10]),
   );
   object.imageUrls = reader.readStringList(offsets[5]) ?? [];
   object.imageUrlsRaw = reader.readString(offsets[6]);
@@ -158,8 +161,10 @@ P _postDeserializeProp<P>(
     case 7:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 8:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1257,6 +1262,14 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Post, Post, QAfterFilterCondition> isUrgentEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isUrgent', value: value),
+      );
+    });
+  }
+
   QueryBuilder<Post, Post, QAfterFilterCondition> isarIdEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1609,6 +1622,18 @@ extension PostQuerySortBy on QueryBuilder<Post, Post, QSortBy> {
     });
   }
 
+  QueryBuilder<Post, Post, QAfterSortBy> sortByIsUrgent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isUrgent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByIsUrgentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isUrgent', Sort.desc);
+    });
+  }
+
   QueryBuilder<Post, Post, QAfterSortBy> sortByPostId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'postId', Sort.asc);
@@ -1719,6 +1744,18 @@ extension PostQuerySortThenBy on QueryBuilder<Post, Post, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Post, Post, QAfterSortBy> thenByIsUrgent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isUrgent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByIsUrgentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isUrgent', Sort.desc);
+    });
+  }
+
   QueryBuilder<Post, Post, QAfterSortBy> thenByIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isarId', Sort.asc);
@@ -1815,6 +1852,12 @@ extension PostQueryWhereDistinct on QueryBuilder<Post, Post, QDistinct> {
     });
   }
 
+  QueryBuilder<Post, Post, QDistinct> distinctByIsUrgent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isUrgent');
+    });
+  }
+
   QueryBuilder<Post, Post, QDistinct> distinctByPostId({
     bool caseSensitive = true,
   }) {
@@ -1882,6 +1925,12 @@ extension PostQueryProperty on QueryBuilder<Post, Post, QQueryProperty> {
   QueryBuilder<Post, bool, QQueryOperations> isSyncedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isSynced');
+    });
+  }
+
+  QueryBuilder<Post, bool, QQueryOperations> isUrgentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isUrgent');
     });
   }
 
