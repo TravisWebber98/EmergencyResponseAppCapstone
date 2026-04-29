@@ -211,7 +211,6 @@ class _editProfilePageState extends State<editProfilePage>{
                   Navigator.pop(context);
                 },
               ),
-
             ),
           ]
         ))

@@ -8,8 +8,13 @@ import 'edit_profile.dart';
 
 
 class ProfilePage extends StatelessWidget {
+  final bool isDarkMode;
+  final Function(bool) onThemeChanged;
+
   const ProfilePage({
     super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
   });
 
 String formatPhoneNumber(String phone) {
@@ -33,16 +38,22 @@ String formatPhoneNumber(String phone) {
           final data = snap.data?.data() ?? {};
           
           return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 20),
-              Text('Profile', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 20),
-
-              ProfileInfo(title: 'Display Name', value: data['display'] ?? ''),
-              // Text('Display Name: ${data['display'] ?? ''}', style: theme.textTheme.bodyLarge),
-              // commented out until location can be saved, no initial way of obtaining location
-              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
+                  const SizedBox(width: 10),
+                  Switch(
+                    value: isDarkMode,
+                    onChanged: onThemeChanged,
+                  ),
+                
+                ],
+              ),
+               const SizedBox(height: 90),
+              Text(data['display'] ?? '', style: theme.textTheme.titleLarge),
+              const SizedBox(height: 10),
               
               if (data['businessName'] != null && data['businessName'].toString().trim().isNotEmpty)
                 ProfileInfo(
@@ -50,19 +61,16 @@ String formatPhoneNumber(String phone) {
                   value: data['businessName'],
                 ),
               if (data['businessName'] != null && data['businessName'].toString().trim().isNotEmpty)
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
               
               
               ProfileInfo(title: 'Location: ', value: '${data['city'] ?? ''}, ${data['state'] ?? ''}'),
-              // Text('Location: ${data['city'] ?? ''}, ${data['state'] ?? ''}', style: theme.textTheme.bodyLarge),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               ProfileInfo(title: 'Email: ', value: data['email'] ?? ''),
-              // Text('Email: ${data['email'] ?? ''}', style: theme.textTheme.bodyLarge),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               
               ProfileInfo(title: 'Phone: ', value: formatPhoneNumber(data['phone']) ?? ''),
-              // Text('Phone: ${data['phone'] ?? ''}', style: theme.textTheme.bodyLarge),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               const SizedBox(width: double.infinity),
 
               SizedBox(
@@ -72,7 +80,7 @@ String formatPhoneNumber(String phone) {
                   padding: const EdgeInsets.only(top: 20.0),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: const Color.fromARGB(255, 98, 131, 158),
                       foregroundColor: Colors.lightBlue,
                     ),
                     onPressed: () {
@@ -94,7 +102,7 @@ String formatPhoneNumber(String phone) {
                   padding: const EdgeInsets.only(top: 20.0),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
+                      backgroundColor: const Color.fromARGB(255, 218, 91, 91),
                       foregroundColor: Colors.grey[200],
                     ),
                     onPressed: () async{
