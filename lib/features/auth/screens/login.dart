@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 //widgets
 import 'package:emergency_response_app/widgets/customTextField.dart';
@@ -13,7 +12,7 @@ class loginPage extends StatefulWidget {
   @override
   State<loginPage> createState() => _loginPageState();
 }
-
+//All possible error Messages from firebase auth
 String _authErrorMessage(String code) {
   switch (code) {
     case 'invalid-email':
@@ -30,7 +29,6 @@ String _authErrorMessage(String code) {
       return 'Login failed. Please try again.';
   }
 }
-
 String _firestoreErrorMessage(String code) {
   switch (code) {
     case 'permission-denied':
@@ -66,7 +64,7 @@ class _loginPageState extends State<loginPage>{
 
       if(!id.contains('@')){
         final snap = await FirebaseFirestore
-        .instance.collection('usernames').doc(id.toLowerCase()).get();
+            .instance.collection('usernames').doc(id.toLowerCase()).get();
         if (!snap.exists) throw Exception("Username not found");
         email = snap['email'];
       }
@@ -93,9 +91,8 @@ class _loginPageState extends State<loginPage>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        // title: const Text('Login Page')
-      ),
+          automaticallyImplyLeading: false,
+          title: const Text('Login Page')),
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
@@ -114,7 +111,6 @@ class _loginPageState extends State<loginPage>{
             // password
             Padding(
               padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-
               child: CustomTextField(
                 controller: _password,
                 label: 'Password',
@@ -122,7 +118,7 @@ class _loginPageState extends State<loginPage>{
                 isPassword: true,
               ),
             ),
-
+            // error message
             if (errorMessage != null)
               Padding(padding: const EdgeInsets.only(top: 10.0),
                 child: Text(errorMessage!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center,),
@@ -131,22 +127,27 @@ class _loginPageState extends State<loginPage>{
             // login button
             SizedBox(
               width: double.infinity,
-                  child: Custombuton(
-                    text: 'Login', 
-                    onPressed: _login,
-                  ),
-            ),
+              child: Custombuton(
+                text: 'Login',
+                onPressed: _login,
+              ),
 
+
+            ),
             const SizedBox(height: 16),
             // register button
             SizedBox(
               width: double.infinity,
-              
-                  child: Custombuton(
-                    text: 'Register', 
-                    secondaryStyle: true,
-                    onPressed: () => Navigator.pushNamed(context, '/register')
-                  ),
+
+              child: Custombuton(
+                  text: 'Register',
+                  secondaryStyle: true,
+                  onPressed: () => Navigator.pushNamed(context, '/register')
+              ),
+
+
+
+
             ),
           ],
         ),

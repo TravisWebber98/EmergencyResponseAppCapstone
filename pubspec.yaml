@@ -1,5 +1,6 @@
 name: emergency_response_app
-description: "A new Flutter project."
+description: "This application will provide users with a dedicated platform for communication and
+coordination during times of crisis."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -38,8 +39,10 @@ dependencies:
   isar_community_flutter_libs: ^3.3.0
   cloud_firestore: ^6.1.2
   firebase_core: ^4.4.0
-  firebase_auth: ^6.1.4
   path_provider: ^2.1.5
+  firebase_auth: ^6.1.4
+  http: ^1.2.0
+  image_picker: ^1.0.0
 
 dev_dependencies:
   flutter_test:
@@ -69,7 +72,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-  - assets/logo.png
+    - assets/logo.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
@@ -98,7 +101,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-
 flutter_icons:
   android: true
   ios: true

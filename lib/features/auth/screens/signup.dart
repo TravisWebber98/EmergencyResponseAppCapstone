@@ -28,7 +28,7 @@ class _registerPageState extends State<registerPage>{
   final _phone = TextEditingController();
   final _city = TextEditingController();
   final _state = TextEditingController();
- 
+
   final _businessName = TextEditingController();
 
   String? selectedState;
@@ -47,23 +47,23 @@ class _registerPageState extends State<registerPage>{
       }
 
       final cred = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: _email.text.trim(), password: _password.text);
+          .createUserWithEmailAndPassword(email: _email.text.trim(), password: _password.text);
       final uid = cred.user!.uid;
-      
+
       await FirebaseFirestore.instance.collection('accounts').doc(uid).set({
         'accountType': 'user',
         'banUntil': null, //timestamp
         'businessName:': _businessName.text.trim(),
         'city': _city.text.trim(),
-        'country': 'United States', 
+        'country': 'United States',
         'createdAt': FieldValue.serverTimestamp(), //timestamp
 
-        'display': _displayName.text.trim(), 
+        'display': _displayName.text.trim(),
         'email': _email.text.trim(),
         'isBanned': false,
         'phone': _phone.text.trim(),
         'state': selectedState,
-        'updatedAt': FieldValue.serverTimestamp(), //timestamp, 
+        'updatedAt': FieldValue.serverTimestamp(), //timestamp,
         'verified': false,
       });
 
@@ -72,7 +72,7 @@ class _registerPageState extends State<registerPage>{
     } catch(e) {
       setState(() => error = e.toString());
     } finally {
-      if (mounted) 
+      if (mounted)
         setState (() => loading = false);
     }
   }
@@ -81,8 +81,8 @@ class _registerPageState extends State<registerPage>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Register Page')),
+          automaticallyImplyLeading: false,
+          title: const Text('Register')),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -92,7 +92,7 @@ class _registerPageState extends State<registerPage>{
               children: [
                 CustomTextField(
                   label: 'Display Name',
-                  hintText: 'Display Name', 
+                  hintText: 'Display Name',
                   controller: _displayName,
                 ),
                 const SizedBox(height: 16),
@@ -110,68 +110,68 @@ class _registerPageState extends State<registerPage>{
                   controller: _phone,
                 ),
                 const SizedBox(height: 16),
-                
+
                 CustomTextField(
                   label: 'Business Name',
                   hintText: 'Leave blank if not applicable',
                   controller: _businessName,
                 ),
                 const SizedBox(height: 16),
-                
+
                 CustomTextField(
                   label: 'City',
                   hintText: 'City',
                   controller: _city,
                 ),
                 const SizedBox(height: 16),
-                
+
                 CustomDropdown(
-                  label: 'State', 
-                  items: StatesList, 
-                  value: selectedState, 
-                  onChanged: (value){
-                    setState(() {
-                      selectedState = value;
-                    });
-                  }
+                    label: 'State',
+                    items: StatesList,
+                    value: selectedState,
+                    onChanged: (value){
+                      setState(() {
+                        selectedState = value;
+                      });
+                    }
                 ),
                 const SizedBox(height: 16),
 
                 CustomTextField(
                   label: 'Password',
-                  hintText: 'Password', 
+                  hintText: 'Password',
                   controller: _password,
                   isPassword: true,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   label: 'Confirm Password',
-                  hintText: 'Confirm Password', 
+                  hintText: 'Confirm Password',
                   controller: _confirmPassword,
                   isPassword: true,
                 ),
                 const SizedBox(height: 24),
-                
+
                 SizedBox(
-                  width: double.infinity,
-                  child: Custombuton(
-                    text: 'Sign Up',
-                    onPressed: _register
-                  )
+                    width: double.infinity,
+                    child: Custombuton(
+                        text: 'Sign Up',
+                        onPressed: _register
+                    )
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
-                  width: double.infinity,
-                  child: Custombuton(
-                    text: 'Cancel', 
-                    secondaryStyle: true,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const loginPage()),
-                      );
-                    },
-                  )
+                    width: double.infinity,
+                    child: Custombuton(
+                      text: 'Cancel',
+                      secondaryStyle: true,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const loginPage()),
+                        );
+                      },
+                    )
                 ),
               ],
             ),

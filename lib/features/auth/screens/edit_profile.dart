@@ -128,7 +128,7 @@ class _editProfilePageState extends State<editProfilePage>{
       }
 
       if (!mounted) return;
-      Navigator.pop(context); 
+      Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       setState(() => _error = e.message ?? e.code);
     } catch (e) {
@@ -137,83 +137,84 @@ class _editProfilePageState extends State<editProfilePage>{
       if (mounted) setState(() => _loading = false);
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Edit Profile Page')),
+        appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: const Text('Edit Profile Page')),
 
-      body: FormSection(
-        child: Column(
-          children: [
-            const Padding(padding: EdgeInsets.only(top: 175.0)),
-            CustomTextField(
-              hintText: "Enter a new Display Name", 
-              label: "Display Name", 
-              controller: _name
-            ),
-            const SizedBox(height: 16),
-            
-            CustomTextField(
-              hintText: "Enter valid email",
-              label: "Email",
-              controller: _email
-            ),
-            const SizedBox(height: 16),
-            
-            CustomTextField(
-              hintText: "Enter valid phone number",
-              label: "Phone Number",
-              controller: _phone
-            ), 
-            const SizedBox(height: 16),
-            
-            CustomTextField(
-              hintText: "Enter valid password",
-              label: "New Password",
-              controller: _newPassword,
-              isPassword: true,
-            ),
-            const SizedBox(height: 16),
-            
-            CustomTextField(
-              hintText: "Confirm password",
-              label: "Confirm Password",
-              controller: _confirmPassword,
-              isPassword: true,
-            ),  
-            const SizedBox(height: 16),
-            
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Text(_error!, style: const TextStyle(color: Colors.red)),  
-            ),
-            const SizedBox(height: 16),
+        body: FormSection(
+            child: Column(
+                children: [
+                  const Padding(padding: EdgeInsets.only(top: 175.0)),
+                  CustomTextField(
+                      hintText: "Enter a new Display Name",
+                      label: "Display Name",
+                      controller: _name
+                  ),
+                  const SizedBox(height: 16),
 
-            SizedBox(
-              width: double.infinity,
-              child: Custombuton(
-                text: 'Save Changes', 
-                onPressed: _save,
-              ),  
-            ),
+                  CustomTextField(
+                      hintText: "Enter valid email",
+                      label: "Email",
+                      controller: _email
+                  ),
+                  const SizedBox(height: 16),
 
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: Custombuton(
-                text: 'Cancel',
-                secondaryStyle: true,
-                onPressed: (){
-                  Navigator.pop(context);
-                },
-              ),
-            ),
-          ]
-        ))
+                  CustomTextField(
+                      hintText: "Enter valid phone number",
+                      label: "Phone Number",
+                      controller: _phone
+                  ),
+                  const SizedBox(height: 16),
+
+                  CustomTextField(
+                    hintText: "Enter valid password",
+                    label: "New Password",
+                    controller: _newPassword,
+                    isPassword: true,
+                  ),
+                  const SizedBox(height: 16),
+
+                  CustomTextField(
+                    hintText: "Confirm password",
+                    label: "Confirm Password",
+                    controller: _confirmPassword,
+                    isPassword: true,
+                  ),
+                  const SizedBox(height: 16),
+
+                  if (_error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                    ),
+                  const SizedBox(height: 16),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: Custombuton(
+                      text: 'Save Changes',
+                      onPressed: _save,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Custombuton(
+                      text: 'Cancel',
+                      secondaryStyle: true,
+                      onPressed: (){
+                        Navigator.pop(context);
+                      },
+                    ),
+
+                  ),
+                ]
+            ))
     );
   }
 }
