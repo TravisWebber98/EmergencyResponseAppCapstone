@@ -22,7 +22,9 @@ class CommPage extends StatefulWidget {
 
 class _CommPageState extends State<CommPage> {
   List<Community> joinedCommunities = [];
-  List<Community> availableCommunities = [];
+  // Available communities, split by proximity to the user's signup state.
+  List<Community> nearYouCommunities = [];
+  List<Community> otherCommunities = [];
   bool isLoading = true;
   late String _userId;
 
@@ -42,11 +44,12 @@ class _CommPageState extends State<CommPage> {
       final joined =
       await widget.repository.getJoinedCommunities(_userId);
       final available =
-      await widget.repository.getAvailableCommunities(_userId);
+      await widget.repository.getAvailableCommunitiesNearby(_userId);
 
       setState(() {
         joinedCommunities = joined;
-        availableCommunities = available;
+        nearYouCommunities = available.nearYou;
+        otherCommunities = available.others;
         isLoading = false;
       });
     } catch (e) {
@@ -144,36 +147,67 @@ class _CommPageState extends State<CommPage> {
 
             const SizedBox(height: 24),
 
-            const Text(
-              "Available Communities",
-              style: TextStyle(
+            //"Near You" — communities matching the user's home state,
+            //with same-city sorted to the top by the repository.
+            //Hidden entirely when the user has no state on file or
+            //when no available community happens to be in their state.
+            if (nearYouCommunities.isNotEmpty) ...[
+              const Row(
+                children: [
+                  Icon(Icons.near_me, size: 20, color: Colors.blue),
+                  SizedBox(width: 6),
+                  Text(
+                    "Near You",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ...nearYouCommunities.map((c) => _availableCard(c)),
+              const SizedBox(height: 24),
+            ],
+
+            //"All Others" — everything else not joined and not near you.
+            //Header text shifts to a friendlier "Available Communities"
+            //when there's no Near You section above ( the user has
+            //no state, or no nearby matches). That way the page never
+            //looks like it's missing a section.
+            Text(
+              nearYouCommunities.isEmpty
+                  ? "Available Communities"
+                  : "All Others",
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 10),
 
-            if (availableCommunities.isEmpty)
+            if (otherCommunities.isEmpty && nearYouCommunities.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
                 child: Text("No available communities right now."),
               ),
 
-            ...availableCommunities.map(
-                  (community) => Card(
-                child: ListTile(
-                  leading: const Icon(Icons.location_on),
-                  title: Text(community.name),
-                  subtitle:
-                  Text('${community.city}, ${community.state}'),
-                  trailing: ElevatedButton(
-                    onPressed: () => joinCommunity(community),
-                    child: const Text("Join"),
-                  ),
-                ),
-              ),
-            ),
+            ...otherCommunities.map((c) => _availableCard(c)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _availableCard(Community community) {
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.location_on),
+        title: Text(community.name),
+        subtitle: Text('${community.city}, ${community.state}'),
+        trailing: ElevatedButton(
+          onPressed: () => joinCommunity(community),
+          child: const Text("Join"),
         ),
       ),
     );

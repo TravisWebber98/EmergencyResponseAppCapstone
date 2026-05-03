@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Geolocation: shown to the user when prompted for location permission.
+	     Apple rejects vague reason strings, so this names the actual feature. -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Emergency Response uses your location to attach where an incident is happening to your post, so other community members can respond to the right place.</string>
 </dict>
 </plist>

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:emergency_response_app/repositories/post/post_repository.dart';
+import 'package:emergency_response_app/core/services/location/location_service.dart';
 
 class CreatePostPage extends StatefulWidget {
   final String communityId;
@@ -21,6 +22,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
   bool _loading = false;
   bool _isUrgent = false;
   String? _error;
+
+  // Location attachment. All three are null when no location is attached;
+  // they're set together when the user resolves their current location,
+  // and cleared together when they tap the X.
+  double? _latitude;
+  double? _longitude;
+  String? _locationLabel;
+  bool _resolvingLocation = false;
 
   late final PostRepository _repository;
 
@@ -45,6 +54,92 @@ class _CreatePostPageState extends State<CreatePostPage> {
         _selectedImages.addAll(picked.map((x) => File(x.path)));
       });
     }
+  }
+
+  // Resolve the user's current location and stash it on this post draft.
+  // On failure, surface the LocationException message in a SnackBar so
+  // the user can act on it (turn on services, change settings, etc.).
+  Future<void> _attachCurrentLocation() async {
+    setState(() => _resolvingLocation = true);
+    try {
+      final result = await LocationService.getCurrentLocation();
+      if (!mounted) return;
+      setState(() {
+        _latitude = result.latitude;
+        _longitude = result.longitude;
+        _locationLabel = result.label.isNotEmpty
+            ? result.label
+            : '${result.latitude.toStringAsFixed(4)}, '
+                '${result.longitude.toStringAsFixed(4)}';
+      });
+    } on LocationException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not get location: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _resolvingLocation = false);
+    }
+  }
+
+  void _clearLocation() {
+    setState(() {
+      _latitude = null;
+      _longitude = null;
+      _locationLabel = null;
+    });
+  }
+
+  // Either the "Use My Current Location" button or, once a location is
+  // attached, an info row showing the resolved label with a remove button.
+  Widget _buildLocationSection() {
+    final hasLocation = _latitude != null && _longitude != null;
+    if (!hasLocation) {
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: _resolvingLocation ? null : _attachCurrentLocation,
+          icon: _resolvingLocation
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.my_location),
+          label: Text(_resolvingLocation
+              ? 'Getting location…'
+              : 'Use My Current Location'),
+        ),
+      );
+    }
+
+    return Card(
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: Colors.blue.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.location_on, color: Colors.blue),
+        title: const Text(
+          'Location attached',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          _locationLabel ?? '',
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: 'Remove location',
+          onPressed: _clearLocation,
+        ),
+      ),
+    );
   }
 
   Future<void> _submit() async {
@@ -77,6 +172,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
         content: _content.text.trim(),
         images: _selectedImages,
         isUrgent: _isUrgent,
+        latitude: _latitude,
+        longitude: _longitude,
+        locationLabel: _locationLabel,
       );
 
       if (!mounted) return;
@@ -192,6 +290,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
               icon: const Icon(Icons.image),
               label: const Text('Add Images'),
             ),
+
+            const SizedBox(height: 16),
+
+            // Location attachment (optional, opt-in). Hidden by default;
+            // when the user taps the button, we resolve their current
+            // GPS location and reverse-geocode it to a friendly label.
+            // Once attached, shows the label with an X to remove.
+            _buildLocationSection(),
 
             const SizedBox(height: 16),
 

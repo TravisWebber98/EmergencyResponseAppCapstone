@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emergency_response_app/widgets/FormSection.dart';
 import 'package:emergency_response_app/widgets/customTextField.dart';
 import 'package:emergency_response_app/widgets/customButon.dart';
+import 'package:emergency_response_app/widgets/customDropdown.dart';
+import 'package:emergency_response_app/widgets/states_list.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -16,9 +18,14 @@ class _editProfilePageState extends State<editProfilePage>{
   final _name = TextEditingController();
   final _phone = TextEditingController();
   final _email = TextEditingController();
+  final _city = TextEditingController();
 
   final _newPassword = TextEditingController();
   final _confirmPassword = TextEditingController();
+
+  // Selected state code/name from the dropdown. Mirrors signup.dart's
+  // pattern of separating dropdown selection from a text controller.
+  String? _selectedState;
 
   bool _loading = false;
   bool _loadingInitial = true;
@@ -53,6 +60,13 @@ class _editProfilePageState extends State<editProfilePage>{
       _name.text = (data['display'] ?? user.displayName ?? '').toString();
       _phone.text = (data['phone'] ?? '').toString();
       _email.text = (data['email'] ?? user.email ?? '').toString();
+      _city.text = (data['city'] ?? '').toString();
+      // Only assign if the existing state value is in StatesList; otherwise
+      // the dropdown asserts. Defaults to null which renders as "no selection".
+      final existingState = (data['state'] ?? '').toString();
+      if (existingState.isNotEmpty && StatesList.contains(existingState)) {
+        _selectedState = existingState;
+      }
 
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
@@ -67,6 +81,7 @@ class _editProfilePageState extends State<editProfilePage>{
     _name.dispose();
     _phone.dispose();
     _email.dispose();
+    _city.dispose();
     _newPassword.dispose();
     _confirmPassword.dispose();
     super.dispose();
@@ -90,6 +105,8 @@ class _editProfilePageState extends State<editProfilePage>{
     final newDisplay = _name.text.trim();
     final newPhone = _phone.text.trim();
     final newEmail = _email.text.trim();
+    final newCity = _city.text.trim();
+    final newState = _selectedState;
 
     try {
       // can update email, but is supposed to send a verification email that needs to be
@@ -118,6 +135,10 @@ class _editProfilePageState extends State<editProfilePage>{
       if (newDisplay.isNotEmpty) updates['display'] = newDisplay;
       if (newPhone.isNotEmpty) updates['phone'] = newPhone;
       if (newEmail.isNotEmpty) updates['email'] = newEmail;
+      // Location: write whichever was actually entered. Same "blank means
+      // don't overwrite" rule as the other fields.
+      if (newCity.isNotEmpty) updates['city'] = newCity;
+      if (newState != null && newState.isNotEmpty) updates['state'] = newState;
       updates['updatedAt'] = FieldValue.serverTimestamp();
       // if the user leaves a field clear, it shouldnt overwrite existing
       if (updates.isNotEmpty) {
@@ -167,6 +188,25 @@ class _editProfilePageState extends State<editProfilePage>{
                       hintText: "Enter valid phone number",
                       label: "Phone Number",
                       controller: _phone
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Location: city as free text + state from the same
+                  // dropdown used at signup so values stay consistent.
+                  CustomTextField(
+                    hintText: "City",
+                    label: "City",
+                    controller: _city,
+                  ),
+                  const SizedBox(height: 16),
+
+                  CustomDropdown(
+                    label: 'State',
+                    items: StatesList,
+                    value: _selectedState,
+                    onChanged: (value) {
+                      setState(() => _selectedState = value);
+                    },
                   ),
                   const SizedBox(height: 16),
 

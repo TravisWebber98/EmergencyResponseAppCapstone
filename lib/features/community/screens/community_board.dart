@@ -438,6 +438,42 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
                               ),
                               // Text(post.content),
 
+                              // Optional location chip — present only when the
+                              // post had a location attached at create/edit time.
+                              if (post.hasLocation &&
+                                  (post.locationLabel?.isNotEmpty ?? false)) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on,
+                                      size: 14,
+                                      color: post.isUrgent
+                                          ? (isDarkMode
+                                              ? Colors.black
+                                              : Colors.blue.shade700)
+                                          : Colors.blue,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        post.locationLabel!,
+                                        style: TextStyle(
+                                          color: post.isUrgent
+                                              ? (isDarkMode
+                                                  ? Colors.black
+                                                  : Colors.blue.shade700)
+                                              : Colors.blue,
+                                          fontSize: 12,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+
                               //Images
                               if (post.imageUrls.isNotEmpty) ...[
                                 const SizedBox(height: 8),
