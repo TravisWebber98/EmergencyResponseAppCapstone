@@ -110,7 +110,7 @@ class _CommPageState extends State<CommPage> {
           padding: const EdgeInsets.all(16),
           children: [
             Card(
-              color: Colors.blueGrey.shade50,
+              color: Colors.grey.shade50,
               child: ListTile(
                 leading: const Icon(Icons.wifi_tethering),
                 title: const Text('Backup Server Demo'),
