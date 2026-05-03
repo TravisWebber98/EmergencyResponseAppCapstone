@@ -4,6 +4,7 @@ import 'package:emergency_response_app/models/community.dart';
 import 'package:emergency_response_app/repositories/community/community_repository.dart';
 import 'package:emergency_response_app/features/community/screens/community_board.dart';
 import 'package:emergency_response_app/features/community/screens/create_community.dart';
+import 'package:emergency_response_app/features/backup_server/screens/backup_server_demo_page.dart';
 
 
 class CommPage extends StatefulWidget {
@@ -84,7 +85,7 @@ class _CommPageState extends State<CommPage> {
     return Scaffold(
       // appBar: AppBar(
       //   title: const Text("Communities"),
-      // ),
+      // )
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final created = await Navigator.push(
@@ -108,6 +109,28 @@ class _CommPageState extends State<CommPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            Card(
+              color: Colors.blueGrey.shade50,
+              child: ListTile(
+                leading: const Icon(Icons.wifi_tethering),
+                title: const Text('Backup Server Demo'),
+                subtitle: const Text(
+                  'Test PocketBase disaster backup connection',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const BackupServerDemoPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
             const Text(
               "Joined Communities",
               style: TextStyle(
