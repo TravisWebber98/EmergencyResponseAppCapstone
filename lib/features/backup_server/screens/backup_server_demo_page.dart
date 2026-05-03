@@ -27,16 +27,118 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
     });
   }
 
-  Future<void> _createTestAlert() async {
+  Future<void> _showCreatePostDialog() async {
+    final titleController = TextEditingController();
+    final bodyController = TextEditingController();
+    bool urgent = true;
+
+    final result = await showDialog<({String title, String body, bool urgent})>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Create Backup Alert'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Title',
+                        hintText: 'Example: Road blocked',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: bodyController,
+                      decoration: const InputDecoration(
+                        labelText: 'Details',
+                        hintText: 'Example: Tree down on Main Street',
+                      ),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Urgent'),
+                      value: urgent,
+                      onChanged: (value) {
+                        setDialogState(() {
+                          urgent = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final title = titleController.text.trim();
+                    final body = bodyController.text.trim();
+
+                    if (title.isEmpty || body.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Title and details are required.'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(
+                      dialogContext,
+                      (
+                      title: title,
+                      body: body,
+                      urgent: urgent,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.send),
+                  label: const Text('Create'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    titleController.dispose();
+    bodyController.dispose();
+
+    if (result == null) return;
+
+    await _createDisasterPost(
+      title: result.title,
+      body: result.body,
+      urgent: result.urgent,
+    );
+  }
+
+  Future<void> _createDisasterPost({
+    required String title,
+    required String body,
+    required bool urgent,
+  }) async {
     setState(() {
       _isCreatingPost = true;
     });
 
     try {
       await _backupService.createDisasterPost(
-        title: 'Demo emergency alert',
-        body: 'This alert was created from the Flutter app through DisasterNet.',
-        urgent: true,
+        title: title,
+        body: body,
+        urgent: urgent,
       );
 
       await _refreshPosts();
@@ -75,7 +177,7 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _isCreatingPost ? null : _createTestAlert,
+        onPressed: _isCreatingPost ? null : _showCreatePostDialog,
         icon: _isCreatingPost
             ? const SizedBox(
           width: 18,
@@ -83,7 +185,7 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
           child: CircularProgressIndicator(strokeWidth: 2),
         )
             : const Icon(Icons.add_alert),
-        label: Text(_isCreatingPost ? 'Creating...' : 'Create Test Alert'),
+        label: Text(_isCreatingPost ? 'Creating...' : 'Create Alert'),
       ),
       body: FutureBuilder<List<DisasterPost>>(
         future: _postsFuture,
