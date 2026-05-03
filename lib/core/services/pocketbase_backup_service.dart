@@ -62,4 +62,44 @@ class PocketBaseBackupService {
         .map((item) => DisasterPost.fromJson(item as Map<String, dynamic>))
         .toList();
   }
+
+  Future<DisasterPost> createDisasterPost({
+    required String title,
+    required String body,
+    required bool urgent,
+    String communityId = 'demo-community',
+    String authorId = 'demo-user',
+    String createdByDeviceId = 'emulator-demo',
+  }) async {
+    final uri = Uri.parse(
+      '$baseUrl/api/collections/disaster_posts/records',
+    );
+
+    final response = await http.post(
+      uri,
+      headers: const {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'title': title,
+        'body': body,
+        'urgent': urgent,
+        'communityId': communityId,
+        'authorId': authorId,
+        'createdByDeviceId': createdByDeviceId,
+        'clientCreatedAt': DateTime.now().toUtc().toIso8601String(),
+        'clientUpdatedAt': DateTime.now().toUtc().toIso8601String(),
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to create disaster post. '
+            'Status: ${response.statusCode}, Body: ${response.body}',
+      );
+    }
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    return DisasterPost.fromJson(decoded);
+  }
 }
