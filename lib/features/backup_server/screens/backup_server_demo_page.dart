@@ -13,6 +13,7 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
   final PocketBaseBackupService _backupService = PocketBaseBackupService();
 
   late Future<List<DisasterPost>> _postsFuture;
+  bool _isCreatingPost = false;
 
   @override
   void initState() {
@@ -26,6 +27,41 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
     });
   }
 
+  Future<void> _createTestAlert() async {
+    setState(() {
+      _isCreatingPost = true;
+    });
+
+    try {
+      await _backupService.createDisasterPost(
+        title: 'Demo emergency alert',
+        body: 'This alert was created from the Flutter app through DisasterNet.',
+        urgent: true,
+      );
+
+      await _refreshPosts();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Created alert on backup server.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to create alert: $e'),
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isCreatingPost = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,6 +73,17 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
             icon: const Icon(Icons.refresh),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _isCreatingPost ? null : _createTestAlert,
+        icon: _isCreatingPost
+            ? const SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+            : const Icon(Icons.add_alert),
+        label: Text(_isCreatingPost ? 'Creating...' : 'Create Test Alert'),
       ),
       body: FutureBuilder<List<DisasterPost>>(
         future: _postsFuture,
