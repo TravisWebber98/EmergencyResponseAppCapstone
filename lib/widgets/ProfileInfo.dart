@@ -4,7 +4,7 @@ class ProfileInfo extends StatelessWidget{
   final String title;
   final String value;
 
-  const ProfileInfo({
+  const ProfileInfo({super.key, 
     required this.title,
     required this.value,
   });

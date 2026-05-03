@@ -5,7 +5,7 @@ class Custombuton extends StatelessWidget{
   final VoidCallback onPressed;
   final bool secondaryStyle;
 
-  const Custombuton({
+  const Custombuton({super.key, 
     required this.text,
     required this.onPressed,
     this.secondaryStyle = false,

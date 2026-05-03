@@ -267,7 +267,7 @@ class _EditPostPageState extends State<EditPostPage> {
               ),
               child: SwitchListTile(
                 value: _isUrgent,
-                activeColor: Colors.red,
+                activeThumbColor: Colors.red,
                 onChanged: (v) => setState(() => _isUrgent = v),
                 title: Row(
                   children: [

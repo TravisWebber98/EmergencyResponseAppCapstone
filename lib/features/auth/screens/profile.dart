@@ -2,7 +2,6 @@ import 'package:emergency_response_app/widgets/ProfileInfo.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:emergency_response_app/widgets/phoneFormatter.dart';
 
 import 'edit_profile.dart';
 

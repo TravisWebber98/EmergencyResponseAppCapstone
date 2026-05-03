@@ -8,7 +8,7 @@ class CustomTextField extends StatelessWidget {
   final bool isPassword;
   final List<TextInputFormatter>? inputFormatters;
 
-  const CustomTextField({
+  const CustomTextField({super.key, 
     required this.hintText,
     required this.label,
     required this.controller,

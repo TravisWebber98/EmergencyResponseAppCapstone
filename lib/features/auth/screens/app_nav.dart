@@ -1,14 +1,11 @@
 import 'package:emergency_response_app/features/community/community_screens.dart';
-import 'package:emergency_response_app/repositories/community/community_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:emergency_response_app/repositories/community/firebase_community_repository.dart';
 import 'package:emergency_response_app/features/messaging/screens/messaging_page.dart';
 import 'package:emergency_response_app/features/community/screens/community_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:emergency_response_app/repositories/community/community_repository.dart';
 
 import 'notifications.dart';
-import 'home.dart';
 import 'profile.dart';
 
 class AppNav extends StatefulWidget {

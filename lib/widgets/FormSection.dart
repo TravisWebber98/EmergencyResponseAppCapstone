@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class FormSection extends StatelessWidget {
   final Widget child;
 
-  const FormSection({
+  const FormSection({super.key, 
     required this.child,
   });
 

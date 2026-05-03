@@ -16,7 +16,7 @@ class PhoneFormatter extends TextInputFormatter {
     if (digits.isNotEmpty) {
       formatted = '(';
     }
-    if (digits.length >= 1) {
+    if (digits.isNotEmpty) {
       formatted += digits.substring(0, digits.length >= 3 ? 3 : digits.length);
     }
     if (digits.length >= 3) {
