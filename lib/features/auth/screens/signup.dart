@@ -82,7 +82,7 @@ class _registerPageState extends State<registerPage>{
     return Scaffold(
       appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text('Register Page')),
+          title: const Text('Register')),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20),

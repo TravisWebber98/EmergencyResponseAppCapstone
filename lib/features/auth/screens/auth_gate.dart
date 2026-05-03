@@ -12,7 +12,13 @@ import 'login.dart';
 // users land in the app without having to type their password again,
 // until they explicitly sign out (or the session expires server-side).
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
+  final bool isDarkMode;
+  final Function(bool) onThemeChanged;
+  const AuthGate({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,  
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +38,10 @@ class AuthGate extends StatelessWidget {
         if (user == null) {
           return const loginPage();
         }
-        return const AppNav();
+        return AppNav(
+          isDarkMode: false,
+          onThemeChanged: (value) {},
+        );
       },
     );
   }

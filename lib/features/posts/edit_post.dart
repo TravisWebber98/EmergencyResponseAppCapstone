@@ -89,6 +89,16 @@ class _EditPostPageState extends State<EditPostPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Adjust colors based on dark mode for better visibility.
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final urgentCardColor = _isUrgent
+      ? isDarkMode
+        ? Colors.red.shade700
+        : Colors.red.shade50
+      : null;
+
+    final urgentTextColor = _isUrgent
+      ? (isDarkMode ? Colors.black : Colors.black) : Colors.black;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Post'),
@@ -247,7 +257,8 @@ class _EditPostPageState extends State<EditPostPage> {
             // Urgent toggle. Note: re-flagging an existing post as urgent
             // does NOT re-fire notifications — only fresh urgent posts do.
             Card(
-              color: _isUrgent ? Colors.red.shade50 : null,
+              color: urgentCardColor,
+              // color: _isUrgent ? Colors.red.shade50 : null,
               shape: RoundedRectangleBorder(
                 side: BorderSide(
                   color: _isUrgent ? Colors.red : Colors.grey.shade300,
@@ -262,18 +273,19 @@ class _EditPostPageState extends State<EditPostPage> {
                   children: [
                     Icon(
                       Icons.warning_amber_rounded,
-                      color: _isUrgent ? Colors.red : Colors.grey,
+                      color: _isUrgent ? urgentTextColor : Colors.grey,
+                      // color: _isUrgent ? Colors.red : Colors.grey,
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       'Mark as urgent',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold, color: urgentTextColor),
                     ),
                   ],
                 ),
-                subtitle: const Text(
+                subtitle: Text(
                   'Editing urgency will not send a new notification.',
-                  style: TextStyle(fontSize: 12),
+                  style: TextStyle(fontSize: 12, color: urgentTextColor),
                 ),
               ),
             ),

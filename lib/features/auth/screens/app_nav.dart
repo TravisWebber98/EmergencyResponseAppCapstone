@@ -1,12 +1,25 @@
+import 'package:emergency_response_app/features/community/community_screens.dart';
+import 'package:emergency_response_app/repositories/community/community_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:emergency_response_app/repositories/community/firebase_community_repository.dart';
 import 'package:emergency_response_app/features/messaging/screens/messaging_page.dart';
+import 'package:emergency_response_app/features/community/screens/community_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:emergency_response_app/repositories/community/community_repository.dart';
 
 import 'notifications.dart';
 import 'home.dart';
 import 'profile.dart';
 
 class AppNav extends StatefulWidget {
-  const AppNav({super.key});
+  final bool isDarkMode;
+  final Function(bool) onThemeChanged;
+
+  const AppNav({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
   State<AppNav> createState() => _AppNavState();
@@ -19,15 +32,32 @@ class _AppNavState extends State<AppNav> {
   Widget build(BuildContext context){
     final pages =[
       const NotificationsPage(),
-      const HomePage(),
+      // const HomePage(),
+      CommPage(
+        repository: FirebaseCommunityRepository(
+          firestore: FirebaseFirestore.instance,
+        ),
+      ),
       const MessagingPage(),
-      const ProfilePage(),
+      ProfilePage(
+        isDarkMode: widget.isDarkMode,
+        onThemeChanged: widget.onThemeChanged,
+      ),
     ];
 
     return Scaffold(
       appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text("App Testing")),
+          
+          title: Row (
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/logo.png', height: 30),
+            const SizedBox(width: 10),
+            const Text("- ERA"),
+          ],
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
 
         selectedIndex: currentPageIndex,

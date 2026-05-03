@@ -82,9 +82,9 @@ class _CommPageState extends State<CommPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Communities"),
-      ),
+      // appBar: AppBar(
+      //   title: const Text("Communities"),
+      // ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final created = await Navigator.push(

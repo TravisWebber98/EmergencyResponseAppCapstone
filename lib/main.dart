@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:emergency_response_app/core/services/services.dart';
 import 'app.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,6 +10,10 @@ import 'package:flutter/foundation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // forced portrait orientation (optional)
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   //Local cache
   await IsarService.init();
   //Firebase (must be initialized before any Firestore/Auth usage

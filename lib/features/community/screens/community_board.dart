@@ -146,7 +146,7 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
     final theme = Theme.of(context);
     final community = widget.community;
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -315,6 +315,7 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
                         margin: const EdgeInsets.only(bottom: 12),
                         // Urgent posts get a red-tinted background and red border
                         // so they stand out at a glance in the feed.
+                        // color: post.isUrgent ? (isDarkMode ? Colors.red.shade50 : Colors.red.shade50) : null,
                         color: post.isUrgent ? Colors.red.shade50 : null,
                         shape: shape,
                         child: Padding(
@@ -358,7 +359,9 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
                                   Expanded(
                                     child: Text(
                                       post.authorName,
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(fontWeight: FontWeight.bold, 
+                                        color: post.isUrgent ? (isDarkMode ? const Color.fromARGB(255, 0, 0, 0) : Colors.black) : null,
+                                      ),
                                     ),
                                   ),
                                   Row(
@@ -366,7 +369,7 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
                                     children: [
                                       Text(
                                         '${post.createdAt.month}/${post.createdAt.day}/${post.createdAt.year}',
-                                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                        style: TextStyle(color:post.isUrgent ? (isDarkMode ? const Color.fromARGB(255, 0, 0, 0) : Colors.grey) : null, fontSize: 12),
                                       ),
                                       // Edit and delete only show on the user's own posts.
                                       if (post.authorId == currentUserId) ...[
@@ -427,7 +430,52 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
                               ),
                               const SizedBox(height: 8),
 
-                              Text(post.content),
+                              Text(
+                                post.content,
+                                style: TextStyle(
+                                  color: post.isUrgent ? (isDarkMode ? const Color.fromARGB(255, 0, 0, 0) : Colors.black) : null,
+                                ),
+                              ),
+                              // Text(post.content),
+
+                              //Images
+                              if (post.imageUrls.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Center(
+                                  child: SizedBox(
+                                    height: 200,
+                                    child: ListView.separated(
+                                      shrinkWrap: true,
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: post.imageUrls.length,
+                                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                                      itemBuilder: (context, index) => GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => ImageViewerPage(
+                                                imageUrls: post.imageUrls,
+                                                initialIndex: index,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: Image.network(
+                                            post.imageUrls[index],
+                                            width: 200,
+                                            height: 200,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+
 
                               //Message author button - only on other users' posts
                               if (post.authorId != currentUserId) ...[
@@ -467,45 +515,25 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
                                         ),
                                       );
                                     },
-                                    icon: const Icon(Icons.message_outlined, size: 16),
-                                    label: const Text('Message'),
-                                  ),
-                                ),
-                              ],
-                              //Images
-                              if (post.imageUrls.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                SizedBox(
-                                  height: 200,
-                                  child: ListView.separated(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: post.imageUrls.length,
-                                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                                    itemBuilder: (context, index) => GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => ImageViewerPage(
-                                              imageUrls: post.imageUrls,
-                                              initialIndex: index,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.network(
-                                          post.imageUrls[index],
-                                          width: 200,
-                                          height: 200,
-                                          fit: BoxFit.cover,
-                                        ),
+                                    // icon: const Icon(Icons.message_outlined, size: 16),
+                                    // label: const Text('Message'),
+                                    icon: Icon(
+                                      Icons.message_outlined,
+                                      size: 16,
+                                      color: Colors.blue,
+                                    ),
+                                    label: Text(
+                                      'Message',
+                                      style: TextStyle(
+                                        color: Colors.blue,
                                       ),
                                     ),
+                                    
                                   ),
                                 ),
                               ],
+
+                              
                             ],
                           ),
                         ),

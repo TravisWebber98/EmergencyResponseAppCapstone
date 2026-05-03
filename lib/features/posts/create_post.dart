@@ -90,6 +90,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Adjust colors based on theme and urgency
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color? urgentCardColor = _isUrgent
+      ? (isDarkMode
+        ? Colors.red.shade700
+        : Colors.red.shade50)
+      : null;
+
+    final Color urgentTextColor = _isUrgent
+      ? (isDarkMode ? Colors.white : Colors.black) : Colors.grey;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Post'),
@@ -188,7 +198,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
             //Urgent flag. When on, every other community member receives
             //an in-app notification when this post is created.
             Card(
-              color: _isUrgent ? Colors.red.shade50 : null,
+              color: urgentCardColor,
+              // color: _isUrgent ? Colors.red.shade50 : null,
               shape: RoundedRectangleBorder(
                 side: BorderSide(
                   color: _isUrgent ? Colors.red : Colors.grey.shade300,
@@ -203,18 +214,19 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   children: [
                     Icon(
                       Icons.warning_amber_rounded,
-                      color: _isUrgent ? Colors.red : Colors.grey,
+                      color: _isUrgent ? urgentTextColor : const Color.fromARGB(255, 135, 133, 133),
+                      // color: _isUrgent ? Colors.red : Colors.grey,
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       'Mark as urgent',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold, color: urgentTextColor),
                     ),
                   ],
                 ),
-                subtitle: const Text(
+                subtitle:  Text(
                   'All community members will be notified.',
-                  style: TextStyle(fontSize: 12),
+                  style: TextStyle(fontSize: 12, color: urgentTextColor),
                 ),
               ),
             ),

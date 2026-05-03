@@ -5,8 +5,20 @@ import 'package:emergency_response_app/features/auth/screens/auth_gate.dart';
 import 'package:emergency_response_app/features/community/community_screens.dart';
 import 'package:emergency_response_app/repositories/community/firebase_community_repository.dart';
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  //default to dark mode (can be toggled in profile settings)
+  bool isDarkMode = true;
+  void toggleTheme(bool value) {
+    setState(() {
+      isDarkMode = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,14 +28,24 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      //theme
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       // AuthGate inspects Firebase Auth on launch and routes to AppNav if a
       // session is cached, or login otherwise. Existing pushNamed targets
       // (like '/login' on logout) still work via the routes map below.
-      home: const AuthGate(),
+      home: AuthGate(
+        isDarkMode: isDarkMode,
+        onThemeChanged: toggleTheme,
+      ),
       routes: {
         '/login': (context) => const loginPage(),
         '/register': (context) => const registerPage(),
-        '/app': (context) => const AppNav(),
+        '/app': (context) => AppNav(
+          isDarkMode: isDarkMode,
+          onThemeChanged: toggleTheme,
+        ),
         '/chat': (context) => CommPage(
           repository: communityRepository,
         ),

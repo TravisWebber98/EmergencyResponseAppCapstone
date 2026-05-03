@@ -17,7 +17,7 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
   final _rules = TextEditingController();
   final _city = TextEditingController();
   final _state = TextEditingController();
-  final _country = TextEditingController();
+  // final _country = TextEditingController();
 
   bool _loading = false;
   String? _error;
@@ -39,7 +39,7 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
     _rules.dispose();
     _city.dispose();
     _state.dispose();
-    _country.dispose();
+    // _country.dispose();
     super.dispose();
   }
 
@@ -48,8 +48,9 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
     if (_name.text.trim().isEmpty ||
         _description.text.trim().isEmpty ||
         _city.text.trim().isEmpty ||
-        _state.text.trim().isEmpty ||
-        _country.text.trim().isEmpty) {
+        _state.text.trim().isEmpty 
+        // ||_country.text.trim().isEmpty
+      ) {
       setState(() => _error = 'Please fill out all required fields.');
       return;
     }
@@ -74,7 +75,8 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
         rules: _rules.text.trim().isEmpty ? null : _rules.text.trim(),
         city: _city.text.trim(),
         state: _state.text.trim(),
-        country: _country.text.trim(),
+        // country: _country.text.trim(),
+        country: 'United States',
         createdAt: now,
         updatedAt: now,
       );
@@ -166,14 +168,14 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
             ),
             const SizedBox(height: 12),
 
-            TextField(
-              controller: _country,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Country *',
-              ),
-            ),
-            const SizedBox(height: 24),
+            // TextField(
+            //   controller: _country,
+            //   decoration: const InputDecoration(
+            //     border: OutlineInputBorder(),
+            //     labelText: 'Country *',
+            //   ),
+            // ),
+            // const SizedBox(height: 24),
 
             if (_error != null)
               Padding(
