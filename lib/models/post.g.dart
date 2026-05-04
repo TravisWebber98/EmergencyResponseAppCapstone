@@ -38,21 +38,41 @@ const PostSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'imageUrls': PropertySchema(
+    r'hasLocation': PropertySchema(
       id: 5,
+      name: r'hasLocation',
+      type: IsarType.bool,
+    ),
+    r'imageUrls': PropertySchema(
+      id: 6,
       name: r'imageUrls',
       type: IsarType.stringList,
     ),
     r'imageUrlsRaw': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'imageUrlsRaw',
       type: IsarType.string,
     ),
-    r'isSynced': PropertySchema(id: 7, name: r'isSynced', type: IsarType.bool),
-    r'isUrgent': PropertySchema(id: 8, name: r'isUrgent', type: IsarType.bool),
-    r'postId': PropertySchema(id: 9, name: r'postId', type: IsarType.string),
-    r'updatedAt': PropertySchema(
+    r'isSynced': PropertySchema(id: 8, name: r'isSynced', type: IsarType.bool),
+    r'isUrgent': PropertySchema(id: 9, name: r'isUrgent', type: IsarType.bool),
+    r'latitude': PropertySchema(
       id: 10,
+      name: r'latitude',
+      type: IsarType.double,
+    ),
+    r'locationLabel': PropertySchema(
+      id: 11,
+      name: r'locationLabel',
+      type: IsarType.string,
+    ),
+    r'longitude': PropertySchema(
+      id: 12,
+      name: r'longitude',
+      type: IsarType.double,
+    ),
+    r'postId': PropertySchema(id: 13, name: r'postId', type: IsarType.string),
+    r'updatedAt': PropertySchema(
+      id: 14,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
@@ -91,6 +111,12 @@ int _postEstimateSize(
     }
   }
   bytesCount += 3 + object.imageUrlsRaw.length * 3;
+  {
+    final value = object.locationLabel;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.postId.length * 3;
   return bytesCount;
 }
@@ -106,12 +132,16 @@ void _postSerialize(
   writer.writeString(offsets[2], object.communityId);
   writer.writeString(offsets[3], object.content);
   writer.writeDateTime(offsets[4], object.createdAt);
-  writer.writeStringList(offsets[5], object.imageUrls);
-  writer.writeString(offsets[6], object.imageUrlsRaw);
-  writer.writeBool(offsets[7], object.isSynced);
-  writer.writeBool(offsets[8], object.isUrgent);
-  writer.writeString(offsets[9], object.postId);
-  writer.writeDateTime(offsets[10], object.updatedAt);
+  writer.writeBool(offsets[5], object.hasLocation);
+  writer.writeStringList(offsets[6], object.imageUrls);
+  writer.writeString(offsets[7], object.imageUrlsRaw);
+  writer.writeBool(offsets[8], object.isSynced);
+  writer.writeBool(offsets[9], object.isUrgent);
+  writer.writeDouble(offsets[10], object.latitude);
+  writer.writeString(offsets[11], object.locationLabel);
+  writer.writeDouble(offsets[12], object.longitude);
+  writer.writeString(offsets[13], object.postId);
+  writer.writeDateTime(offsets[14], object.updatedAt);
 }
 
 Post _postDeserialize(
@@ -126,13 +156,16 @@ Post _postDeserialize(
     communityId: reader.readString(offsets[2]),
     content: reader.readString(offsets[3]),
     createdAt: reader.readDateTime(offsets[4]),
-    isSynced: reader.readBoolOrNull(offsets[7]) ?? false,
-    isUrgent: reader.readBoolOrNull(offsets[8]) ?? false,
-    postId: reader.readString(offsets[9]),
-    updatedAt: reader.readDateTime(offsets[10]),
+    isSynced: reader.readBoolOrNull(offsets[8]) ?? false,
+    isUrgent: reader.readBoolOrNull(offsets[9]) ?? false,
+    latitude: reader.readDoubleOrNull(offsets[10]),
+    locationLabel: reader.readStringOrNull(offsets[11]),
+    longitude: reader.readDoubleOrNull(offsets[12]),
+    postId: reader.readString(offsets[13]),
+    updatedAt: reader.readDateTime(offsets[14]),
   );
-  object.imageUrls = reader.readStringList(offsets[5]) ?? [];
-  object.imageUrlsRaw = reader.readString(offsets[6]);
+  object.imageUrls = reader.readStringList(offsets[6]) ?? [];
+  object.imageUrlsRaw = reader.readString(offsets[7]);
   object.isarId = id;
   return object;
 }
@@ -155,16 +188,24 @@ P _postDeserializeProp<P>(
     case 4:
       return (reader.readDateTime(offset)) as P;
     case 5:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringList(offset) ?? []) as P;
     case 7:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readString(offset)) as P;
     case 8:
       return (reader.readBoolOrNull(offset) ?? false) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 10:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -907,6 +948,16 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Post, Post, QAfterFilterCondition> hasLocationEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'hasLocation', value: value),
+      );
+    });
+  }
+
   QueryBuilder<Post, Post, QAfterFilterCondition> imageUrlsElementEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1327,6 +1378,348 @@ extension PostQueryFilter on QueryBuilder<Post, Post, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Post, Post, QAfterFilterCondition> latitudeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'latitude'),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> latitudeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'latitude'),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> latitudeEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'latitude',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> latitudeGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'latitude',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> latitudeLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'latitude',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> latitudeBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'latitude',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'locationLabel'),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'locationLabel'),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'locationLabel',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'locationLabel',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'locationLabel',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'locationLabel',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'locationLabel',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'locationLabel',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'locationLabel',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'locationLabel',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'locationLabel', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> locationLabelIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'locationLabel', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> longitudeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'longitude'),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> longitudeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'longitude'),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> longitudeEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'longitude',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> longitudeGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'longitude',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> longitudeLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'longitude',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterFilterCondition> longitudeBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'longitude',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<Post, Post, QAfterFilterCondition> postIdEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1598,6 +1991,18 @@ extension PostQuerySortBy on QueryBuilder<Post, Post, QSortBy> {
     });
   }
 
+  QueryBuilder<Post, Post, QAfterSortBy> sortByHasLocation() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasLocation', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByHasLocationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasLocation', Sort.desc);
+    });
+  }
+
   QueryBuilder<Post, Post, QAfterSortBy> sortByImageUrlsRaw() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'imageUrlsRaw', Sort.asc);
@@ -1631,6 +2036,42 @@ extension PostQuerySortBy on QueryBuilder<Post, Post, QSortBy> {
   QueryBuilder<Post, Post, QAfterSortBy> sortByIsUrgentDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isUrgent', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByLatitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByLatitudeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByLocationLabel() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'locationLabel', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByLocationLabelDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'locationLabel', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByLongitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> sortByLongitudeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.desc);
     });
   }
 
@@ -1720,6 +2161,18 @@ extension PostQuerySortThenBy on QueryBuilder<Post, Post, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Post, Post, QAfterSortBy> thenByHasLocation() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasLocation', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByHasLocationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasLocation', Sort.desc);
+    });
+  }
+
   QueryBuilder<Post, Post, QAfterSortBy> thenByImageUrlsRaw() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'imageUrlsRaw', Sort.asc);
@@ -1765,6 +2218,42 @@ extension PostQuerySortThenBy on QueryBuilder<Post, Post, QSortThenBy> {
   QueryBuilder<Post, Post, QAfterSortBy> thenByIsarIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByLatitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByLatitudeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByLocationLabel() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'locationLabel', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByLocationLabelDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'locationLabel', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByLongitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Post, Post, QAfterSortBy> thenByLongitudeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.desc);
     });
   }
 
@@ -1832,6 +2321,12 @@ extension PostQueryWhereDistinct on QueryBuilder<Post, Post, QDistinct> {
     });
   }
 
+  QueryBuilder<Post, Post, QDistinct> distinctByHasLocation() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasLocation');
+    });
+  }
+
   QueryBuilder<Post, Post, QDistinct> distinctByImageUrls() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'imageUrls');
@@ -1855,6 +2350,29 @@ extension PostQueryWhereDistinct on QueryBuilder<Post, Post, QDistinct> {
   QueryBuilder<Post, Post, QDistinct> distinctByIsUrgent() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isUrgent');
+    });
+  }
+
+  QueryBuilder<Post, Post, QDistinct> distinctByLatitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'latitude');
+    });
+  }
+
+  QueryBuilder<Post, Post, QDistinct> distinctByLocationLabel({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'locationLabel',
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Post, Post, QDistinct> distinctByLongitude() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'longitude');
     });
   }
 
@@ -1910,6 +2428,12 @@ extension PostQueryProperty on QueryBuilder<Post, Post, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Post, bool, QQueryOperations> hasLocationProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hasLocation');
+    });
+  }
+
   QueryBuilder<Post, List<String>, QQueryOperations> imageUrlsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'imageUrls');
@@ -1931,6 +2455,24 @@ extension PostQueryProperty on QueryBuilder<Post, Post, QQueryProperty> {
   QueryBuilder<Post, bool, QQueryOperations> isUrgentProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isUrgent');
+    });
+  }
+
+  QueryBuilder<Post, double?, QQueryOperations> latitudeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'latitude');
+    });
+  }
+
+  QueryBuilder<Post, String?, QQueryOperations> locationLabelProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'locationLabel');
+    });
+  }
+
+  QueryBuilder<Post, double?, QQueryOperations> longitudeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'longitude');
     });
   }
 

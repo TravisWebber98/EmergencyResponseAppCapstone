@@ -38,9 +38,12 @@ class AuthGate extends StatelessWidget {
         if (user == null) {
           return const loginPage();
         }
+        // Pass the theme props through — the previous version hardcoded
+        // false + empty callback, which is why the profile toggle did
+        // nothing when the AuthGate was the route that mounted AppNav.
         return AppNav(
-          isDarkMode: false,
-          onThemeChanged: (value) {},
+          isDarkMode: isDarkMode,
+          onThemeChanged: onThemeChanged,
         );
       },
     );

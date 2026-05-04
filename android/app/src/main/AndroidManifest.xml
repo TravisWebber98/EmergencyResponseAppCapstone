@@ -4,6 +4,10 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
                      android:maxSdkVersion="32"/>
+    <!-- Geolocation: needed to attach the user's current location to posts.
+         FINE for accurate GPS, COARSE as a fallback for network-based location. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <application
         android:label="emergency_response_app"
         android:name="${applicationName}"

@@ -23,6 +23,11 @@ class PostRepository {
     required String content,
     List<File> images = const [],
     bool isUrgent = false,
+    //Optional location attachment. All three are null together when
+    // the user hasn't attached a location.
+    double? latitude,
+    double? longitude,
+    String? locationLabel,
   }) async {
     final isar = IsarService.isar;
     final now = DateTime.now();
@@ -38,6 +43,9 @@ class PostRepository {
       createdAt: now,
       updatedAt: now,
       isUrgent: isUrgent,
+      latitude: latitude,
+      longitude: longitude,
+      locationLabel: locationLabel,
       isSynced: false,
     );
     post.imageUrls = []; //imageUrls is a getter/setter instead of a direct field, can't pass it in the constructor
@@ -64,6 +72,9 @@ class PostRepository {
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
         'isUrgent': isUrgent,
+        'latitude': latitude,
+        'longitude': longitude,
+        'locationLabel': locationLabel,
       });
 
       //Update Isar with URLs and mark synced
@@ -101,6 +112,11 @@ class PostRepository {
     required bool isUrgent,
     List<String> keptImageUrls = const [],
     List<File> newImages = const [],
+    //Location is always written through on edit so the user can attach,
+    // change, or remove (by passing null for all three) the location.
+    double? latitude,
+    double? longitude,
+    String? locationLabel,
   }) async {
     final isar = IsarService.isar;
     final docRef = _postsRef(communityId).doc(postId);
@@ -116,6 +132,9 @@ class PostRepository {
       'content': content,
       'imageUrls': finalUrls,
       'isUrgent': isUrgent,
+      'latitude': latitude,
+      'longitude': longitude,
+      'locationLabel': locationLabel,
       'updatedAt': FieldValue.serverTimestamp(),
     });
 
@@ -129,6 +148,9 @@ class PostRepository {
         cached.content = content;
         cached.imageUrls = finalUrls;
         cached.isUrgent = isUrgent;
+        cached.latitude = latitude;
+        cached.longitude = longitude;
+        cached.locationLabel = locationLabel;
         cached.updatedAt = DateTime.now();
         cached.isSynced = true;
         await isar.posts.put(cached);

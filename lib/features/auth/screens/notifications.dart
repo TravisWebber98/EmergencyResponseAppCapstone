@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:emergency_response_app/models/community.dart';
 import 'package:emergency_response_app/features/community/screens/community_board.dart';
 
-/// Notifications screen — reads from
-/// `accounts/{currentUid}/notifications`, sorted by createdAt desc.
-/// Tapping a notification marks it as read and (for urgent_post type)
-/// navigates to the community board scrolled to the relevant post.
+// Notifications screen — reads from
+//`accounts/{currentUid}/notifications`, sorted by createdAt desc.
+//Tapping a notification marks it as read and (for urgent_post type)
+//navigates to the community board scrolled to the relevant post.
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
 
@@ -66,6 +66,15 @@ class NotificationsPage extends StatelessWidget {
             final doc = docs[i];
             final data = doc.data() as Map<String, dynamic>;
 
+            // Pick unread tile colors that work in both light and dark mode.
+            // The original shade50 colors are near-white and stand out as
+            // glaring blocks against a dark background.
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final urgentUnreadBg =
+                isDark ? Colors.red.shade900.withOpacity(0.35) : Colors.red.shade50;
+            final infoUnreadBg =
+                isDark ? Colors.blue.shade900.withOpacity(0.35) : Colors.blue.shade50;
+
             final title = (data['title'] ?? 'Notification') as String;
             final body = (data['body'] ?? '') as String;
             final read = (data['read'] ?? false) as bool;
@@ -85,9 +94,7 @@ class NotificationsPage extends StatelessWidget {
             return ListTile(
               tileColor: read
                   ? null
-                  : (isUrgent
-                      ? Colors.red.shade50
-                      : Colors.blue.shade50),
+                  : (isUrgent ? urgentUnreadBg : infoUnreadBg),
               leading: CircleAvatar(
                 backgroundColor:
                     isUrgent ? Colors.red : Colors.blueGrey,

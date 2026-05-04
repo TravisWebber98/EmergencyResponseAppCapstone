@@ -102,4 +102,55 @@ class FirebaseCommunityRepository implements CommunityRepository {
         .where((community) => !joinedIds.contains(community.communityId))
         .toList();
   }
+
+  @override
+  Future<AvailableGrouped> getAvailableCommunitiesNearby(String userId) async {
+    //Pull user location and the available pool in parallel — they don't
+    //depend on each other, and the user doc is small.
+    final results = await Future.wait([
+      _usersRef.doc(userId).get(),
+      getAvailableCommunities(userId),
+    ]);
+
+    final userDoc = results[0] as DocumentSnapshot<Map<String, dynamic>>;
+    final available = results[1] as List<Community>;
+
+    final userData = userDoc.data();
+    final userState = (userData?['state'] as String?)?.trim() ?? '';
+    final userCity = (userData?['city'] as String?)?.trim() ?? '';
+
+    //No state on file you can't group, return everything as "others".
+    if (userState.isEmpty) {
+      return (nearYou: <Community>[], others: available);
+    }
+
+    //Case-insensitive comparisons so "TX" / "tx" / " TX " all match.
+    bool sameState(Community c) =>
+        c.state.trim().toLowerCase() == userState.toLowerCase();
+    bool sameCity(Community c) =>
+        userCity.isNotEmpty &&
+            c.city.trim().toLowerCase() == userCity.toLowerCase();
+
+    final nearYou = <Community>[];
+    final others = <Community>[];
+    for (final c in available) {
+      if (sameState(c)) {
+        nearYou.add(c);
+      } else {
+        others.add(c);
+      }
+    }
+
+    //Within "Near You", surface same-city first so the user's exact
+    //city outranks neighboring cities in the same state.
+    nearYou.sort((a, b) {
+      final aSame = sameCity(a) ? 0 : 1;
+      final bSame = sameCity(b) ? 0 : 1;
+      if (aSame != bSame) return aSame - bSame;
+      return a.name.compareTo(b.name);
+    });
+    others.sort((a, b) => a.name.compareTo(b.name));
+
+    return (nearYou: nearYou, others: others);
+  }
 }
