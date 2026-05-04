@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:emergency_response_app/core/services/pocketbase_backup_service.dart';
@@ -28,6 +29,43 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
   bool _isImportingToIsar = false;
   bool _isSyncingToFirestore = false;
 
+  Future<({String authorId, String authorName})> _getCurrentAuthorInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      throw Exception('You must be signed in to create a backup post.');
+    }
+
+    String? profileName;
+
+    try {
+      final accountDoc = await FirebaseFirestore.instance
+          .collection('accounts')
+          .doc(user.uid)
+          .get();
+
+      final data = accountDoc.data();
+
+      profileName = (data?['displayName'] as String?) ??
+          (data?['display'] as String?);
+    } catch (_) {
+      // If Firestore is unreachable during hotspot-only mode, fall back below.
+    }
+
+    final authorName = profileName?.trim().isNotEmpty == true
+        ? profileName!.trim()
+        : (user.displayName?.trim().isNotEmpty == true
+        ? user.displayName!.trim()
+        : (user.email?.trim().isNotEmpty == true
+        ? user.email!.trim()
+        : 'Unknown User'));
+
+    return (
+    authorId: user.uid,
+    authorName: authorName,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -44,16 +82,12 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
     final communityIdController = TextEditingController(
       text: widget.defaultCommunityId,
     );
-    final authorNameController = TextEditingController(
-      text: 'Backup Demo User',
-    );
     final contentController = TextEditingController();
     bool urgent = true;
 
     final result = await showDialog<
         ({
         String communityId,
-        String authorName,
         String content,
         bool urgent,
         })>(
@@ -73,13 +107,6 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
                       decoration: const InputDecoration(
                         labelText: 'Community ID',
                         helperText: 'Using the current community board',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: authorNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Author Name',
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -115,16 +142,13 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
                 ElevatedButton.icon(
                   onPressed: () {
                     final communityId = communityIdController.text.trim();
-                    final authorName = authorNameController.text.trim();
                     final content = contentController.text.trim();
 
-                    if (communityId.isEmpty ||
-                        authorName.isEmpty ||
-                        content.isEmpty) {
+                    if (communityId.isEmpty || content.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Community ID, author name, and content are required.',
+                            'Community ID and content are required.',
                           ),
                         ),
                       );
@@ -135,7 +159,6 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
                       dialogContext,
                       (
                       communityId: communityId,
-                      authorName: authorName,
                       content: content,
                       urgent: urgent,
                       ),
@@ -155,7 +178,6 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
 
     await _createBackupPost(
       communityId: result.communityId,
-      authorName: result.authorName,
       content: result.content,
       isUrgent: result.urgent,
     );
@@ -163,7 +185,6 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
 
   Future<void> _createBackupPost({
     required String communityId,
-    required String authorName,
     required String content,
     required bool isUrgent,
   }) async {
@@ -172,13 +193,14 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
     });
 
     try {
+      final author = await _getCurrentAuthorInfo();
       final now = DateTime.now();
 
       final post = Post(
         postId: 'pb_${now.microsecondsSinceEpoch}',
         communityId: communityId,
-        authorId: 'backup-demo-user',
-        authorName: authorName,
+        authorId: author.authorId,
+        authorName: author.authorName,
         content: content,
         createdAt: now,
         updatedAt: now,
@@ -192,8 +214,10 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Created post on PocketBase backup server.'),
+        SnackBar(
+          content: Text(
+            'Created backup post as ${author.authorName}.',
+          ),
         ),
       );
     } catch (e) {
