@@ -58,7 +58,7 @@ flutter doctor
 ### 2) Clone and open project
 
 ```powershell
-git clone <your-repo-url>
+git clone https://github.com/TravisWebber98/EmergencyResponseAppCapstone
 cd emergency_response_app
 ```
 
