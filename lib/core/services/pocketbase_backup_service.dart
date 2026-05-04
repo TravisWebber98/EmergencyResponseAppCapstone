@@ -1,38 +1,9 @@
 import 'dart:convert';
 
+import 'package:emergency_response_app/core/services/isar/isar_service.dart';
+import 'package:emergency_response_app/models/post.dart';
 import 'package:http/http.dart' as http;
-
-class DisasterPost {
-  DisasterPost({
-    required this.id,
-    required this.title,
-    required this.body,
-    required this.urgent,
-    this.communityId,
-    this.authorId,
-    this.createdByDeviceId,
-  });
-
-  final String id;
-  final String title;
-  final String body;
-  final bool urgent;
-  final String? communityId;
-  final String? authorId;
-  final String? createdByDeviceId;
-
-  factory DisasterPost.fromJson(Map<String, dynamic> json) {
-    return DisasterPost(
-      id: json['id'] as String,
-      title: (json['title'] ?? '') as String,
-      body: (json['body'] ?? '') as String,
-      urgent: (json['urgent'] ?? false) as bool,
-      communityId: json['communityId'] as String?,
-      authorId: json['authorId'] as String?,
-      createdByDeviceId: json['createdByDeviceId'] as String?,
-    );
-  }
-}
+import 'package:isar_community/isar.dart';
 
 class PocketBaseBackupService {
   PocketBaseBackupService({
@@ -41,16 +12,18 @@ class PocketBaseBackupService {
 
   final String baseUrl;
 
-  Future<List<DisasterPost>> fetchDisasterPosts() async {
+  String get _recordsUrl => '$baseUrl/api/collections/disaster_posts/records';
+
+  Future<List<Post>> fetchBackupPosts() async {
     final uri = Uri.parse(
-      '$baseUrl/api/collections/disaster_posts/records',
+      '$_recordsUrl?sort=-createdAtClient&perPage=100',
     );
 
     final response = await http.get(uri);
 
     if (response.statusCode != 200) {
       throw Exception(
-        'Failed to fetch disaster posts. '
+        'Failed to fetch backup posts. '
             'Status: ${response.statusCode}, Body: ${response.body}',
       );
     }
@@ -59,47 +32,96 @@ class PocketBaseBackupService {
     final items = decoded['items'] as List<dynamic>;
 
     return items
-        .map((item) => DisasterPost.fromJson(item as Map<String, dynamic>))
+        .map((item) => _postFromPocketBaseJson(item as Map<String, dynamic>))
         .toList();
   }
 
-  Future<DisasterPost> createDisasterPost({
-    required String title,
-    required String body,
-    required bool urgent,
-    String communityId = 'demo-community',
-    String authorId = 'demo-user',
-    String createdByDeviceId = 'emulator-demo',
-  }) async {
-    final uri = Uri.parse(
-      '$baseUrl/api/collections/disaster_posts/records',
-    );
-
+  Future<Post> createBackupPost(Post post) async {
     final response = await http.post(
-      uri,
+      Uri.parse(_recordsUrl),
       headers: const {
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'title': title,
-        'body': body,
-        'urgent': urgent,
-        'communityId': communityId,
-        'authorId': authorId,
-        'createdByDeviceId': createdByDeviceId,
-        'clientCreatedAt': DateTime.now().toUtc().toIso8601String(),
-        'clientUpdatedAt': DateTime.now().toUtc().toIso8601String(),
-      }),
+      body: jsonEncode(_postToPocketBaseJson(post)),
     );
 
     if (response.statusCode != 200) {
       throw Exception(
-        'Failed to create disaster post. '
+        'Failed to create backup post. '
             'Status: ${response.statusCode}, Body: ${response.body}',
       );
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return DisasterPost.fromJson(decoded);
+    return _postFromPocketBaseJson(decoded);
+  }
+
+  Future<int> importBackupPostsToIsar() async {
+    final backupPosts = await fetchBackupPosts();
+    final isar = IsarService.isar;
+    var importedCount = 0;
+
+    await isar.writeTxn(() async {
+      for (final backupPost in backupPosts) {
+        final existing = await isar.posts
+            .filter()
+            .postIdEqualTo(backupPost.postId)
+            .findFirst();
+
+        if (existing == null ||
+            backupPost.updatedAt.isAfter(existing.updatedAt)) {
+          backupPost.isSynced = false;
+          await isar.posts.put(backupPost);
+          importedCount++;
+        }
+      }
+    });
+
+    return importedCount;
+  }
+
+  Post _postFromPocketBaseJson(Map<String, dynamic> json) {
+    final post = Post(
+      postId: (json['postId'] ?? json['id']) as String,
+      communityId: (json['communityId'] ?? 'backup-demo-community') as String,
+      authorId: (json['authorId'] ?? 'backup-demo-user') as String,
+      authorName: (json['authorName'] ?? 'Backup Demo User') as String,
+      content: (json['content'] ?? '') as String,
+      createdAt: _parsePocketBaseDate(json['createdAtClient']),
+      updatedAt: _parsePocketBaseDate(json['updatedAtClient']),
+      isUrgent: (json['isUrgent'] ?? false) as bool,
+      isSynced: false,
+    );
+
+    final imageUrls = json['imageUrls'];
+    if (imageUrls is List) {
+      post.imageUrls = imageUrls.map((url) => url.toString()).toList();
+    } else {
+      post.imageUrls = [];
+    }
+
+    return post;
+  }
+
+  Map<String, dynamic> _postToPocketBaseJson(Post post) {
+    return {
+      'postId': post.postId,
+      'communityId': post.communityId,
+      'authorId': post.authorId,
+      'authorName': post.authorName,
+      'content': post.content,
+      'imageUrls': post.imageUrls,
+      'createdAtClient': post.createdAt.toUtc().toIso8601String(),
+      'updatedAtClient': post.updatedAt.toUtc().toIso8601String(),
+      'isUrgent': post.isUrgent,
+    };
+  }
+
+  DateTime _parsePocketBaseDate(dynamic value) {
+    if (value is String && value.isNotEmpty) {
+      return DateTime.parse(value).toLocal();
+    }
+
+    return DateTime.now();
   }
 }

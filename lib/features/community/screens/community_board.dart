@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:emergency_response_app/core/services/isar/isar_service.dart';
 import 'package:emergency_response_app/repositories/messaging/conversation_repository.dart';
 import 'package:emergency_response_app/features/messaging/screens/chat_page.dart';
+import 'package:emergency_response_app/features/backup_server/screens/backup_server_demo_page.dart';
 
 class CommunityBoardPage extends StatefulWidget {
   final Community community;
@@ -151,6 +152,25 @@ class _CommunityBoardPageState extends State<CommunityBoardPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(community.name),
+        actions: [
+          IconButton(
+            tooltip: 'Community Backup Demo',
+            icon: const Icon(Icons.wifi_tethering),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BackupServerDemoPage(
+                    defaultCommunityId: community.communityId,
+                  ),
+                ),
+              );
+
+              if (!context.mounted) return;
+              await _loadPosts();
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

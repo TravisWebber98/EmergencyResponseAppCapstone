@@ -1,9 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:emergency_response_app/core/services/pocketbase_backup_service.dart';
+import 'package:emergency_response_app/models/post.dart';
+import 'package:emergency_response_app/repositories/post/post_repository.dart';
 
 class BackupServerDemoPage extends StatefulWidget {
-  const BackupServerDemoPage({super.key});
+  const BackupServerDemoPage({
+    super.key,
+    this.defaultCommunityId = 'backup-demo-community',
+  });
+
+  final String defaultCommunityId;
 
   @override
   State<BackupServerDemoPage> createState() => _BackupServerDemoPageState();
@@ -11,53 +19,77 @@ class BackupServerDemoPage extends StatefulWidget {
 
 class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
   final PocketBaseBackupService _backupService = PocketBaseBackupService();
+  final PostRepository _postRepository = PostRepository(
+    firestore: FirebaseFirestore.instance,
+  );
 
-  late Future<List<DisasterPost>> _postsFuture;
+  late Future<List<Post>> _postsFuture;
   bool _isCreatingPost = false;
+  bool _isImportingToIsar = false;
+  bool _isSyncingToFirestore = false;
 
   @override
   void initState() {
     super.initState();
-    _postsFuture = _backupService.fetchDisasterPosts();
+    _postsFuture = _backupService.fetchBackupPosts();
   }
 
   Future<void> _refreshPosts() async {
     setState(() {
-      _postsFuture = _backupService.fetchDisasterPosts();
+      _postsFuture = _backupService.fetchBackupPosts();
     });
   }
 
   Future<void> _showCreatePostDialog() async {
-    final titleController = TextEditingController();
-    final bodyController = TextEditingController();
+    final communityIdController = TextEditingController(
+      text: widget.defaultCommunityId,
+    );
+    final authorNameController = TextEditingController(
+      text: 'Backup Demo User',
+    );
+    final contentController = TextEditingController();
     bool urgent = true;
 
-    final result = await showDialog<({String title, String body, bool urgent})>(
+    final result = await showDialog<
+        ({
+        String communityId,
+        String authorName,
+        String content,
+        bool urgent,
+        })>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Create Backup Alert'),
+              title: const Text('Create Backup Post'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
-                      controller: titleController,
+                      controller: communityIdController,
+                      enabled: false,
                       decoration: const InputDecoration(
-                        labelText: 'Title',
-                        hintText: 'Example: Road blocked',
+                        labelText: 'Community ID',
+                        helperText: 'Using the current community board',
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: bodyController,
+                      controller: authorNameController,
                       decoration: const InputDecoration(
-                        labelText: 'Details',
-                        hintText: 'Example: Tree down on Main Street',
+                        labelText: 'Author Name',
                       ),
-                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: contentController,
+                      decoration: const InputDecoration(
+                        labelText: 'Post content',
+                        hintText: 'Example: Road blocked near Main Street',
+                      ),
+                      maxLines: 4,
                     ),
                     const SizedBox(height: 12),
                     SwitchListTile(
@@ -82,13 +114,18 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
                 ),
                 ElevatedButton.icon(
                   onPressed: () {
-                    final title = titleController.text.trim();
-                    final body = bodyController.text.trim();
+                    final communityId = communityIdController.text.trim();
+                    final authorName = authorNameController.text.trim();
+                    final content = contentController.text.trim();
 
-                    if (title.isEmpty || body.isEmpty) {
+                    if (communityId.isEmpty ||
+                        authorName.isEmpty ||
+                        content.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Title and details are required.'),
+                          content: Text(
+                            'Community ID, author name, and content are required.',
+                          ),
                         ),
                       );
                       return;
@@ -97,8 +134,9 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
                     Navigator.pop(
                       dialogContext,
                       (
-                      title: title,
-                      body: body,
+                      communityId: communityId,
+                      authorName: authorName,
+                      content: content,
                       urgent: urgent,
                       ),
                     );
@@ -115,42 +153,54 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
 
     if (result == null) return;
 
-    await _createDisasterPost(
-      title: result.title,
-      body: result.body,
-      urgent: result.urgent,
+    await _createBackupPost(
+      communityId: result.communityId,
+      authorName: result.authorName,
+      content: result.content,
+      isUrgent: result.urgent,
     );
   }
 
-  Future<void> _createDisasterPost({
-    required String title,
-    required String body,
-    required bool urgent,
+  Future<void> _createBackupPost({
+    required String communityId,
+    required String authorName,
+    required String content,
+    required bool isUrgent,
   }) async {
     setState(() {
       _isCreatingPost = true;
     });
 
     try {
-      await _backupService.createDisasterPost(
-        title: title,
-        body: body,
-        urgent: urgent,
-      );
+      final now = DateTime.now();
 
+      final post = Post(
+        postId: 'pb_${now.microsecondsSinceEpoch}',
+        communityId: communityId,
+        authorId: 'backup-demo-user',
+        authorName: authorName,
+        content: content,
+        createdAt: now,
+        updatedAt: now,
+        isUrgent: isUrgent,
+        isSynced: false,
+      );
+      post.imageUrls = [];
+
+      await _backupService.createBackupPost(post);
       await _refreshPosts();
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Created alert on backup server.'),
+          content: Text('Created post on PocketBase backup server.'),
         ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to create alert: $e'),
+          content: Text('Failed to create backup post: $e'),
         ),
       );
     } finally {
@@ -161,20 +211,105 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
     }
   }
 
+  Future<void> _importPocketBasePostsToIsar() async {
+    setState(() {
+      _isImportingToIsar = true;
+    });
+
+    try {
+      final importedCount = await _backupService.importBackupPostsToIsar();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Imported $importedCount post(s) into Isar.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to import posts into Isar: $e'),
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isImportingToIsar = false;
+      });
+    }
+  }
+
+  Future<void> _syncIsarPostsToFirestore() async {
+    setState(() {
+      _isSyncingToFirestore = true;
+    });
+
+    try {
+      await _postRepository.syncUnsyncedPosts();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Synced unsynced Isar posts to Firestore.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to sync Isar posts to Firestore: $e'),
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isSyncingToFirestore = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isBusy =
+        _isCreatingPost || _isImportingToIsar || _isSyncingToFirestore;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Backup Server Demo'),
         actions: [
           IconButton(
+            tooltip: 'Refresh PocketBase posts',
             onPressed: _refreshPosts,
             icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
+            tooltip: 'Import PocketBase posts into Isar',
+            onPressed: _isImportingToIsar ? null : _importPocketBasePostsToIsar,
+            icon: _isImportingToIsar
+                ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+                : const Icon(Icons.download),
+          ),
+          IconButton(
+            tooltip: 'Sync Isar posts to Firestore',
+            onPressed:
+            _isSyncingToFirestore ? null : _syncIsarPostsToFirestore,
+            icon: _isSyncingToFirestore
+                ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+                : const Icon(Icons.cloud_upload),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _isCreatingPost ? null : _showCreatePostDialog,
+        onPressed: isBusy ? null : _showCreatePostDialog,
         icon: _isCreatingPost
             ? const SizedBox(
           width: 18,
@@ -182,9 +317,9 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
           child: CircularProgressIndicator(strokeWidth: 2),
         )
             : const Icon(Icons.add_alert),
-        label: Text(_isCreatingPost ? 'Creating...' : 'Create Alert'),
+        label: Text(_isCreatingPost ? 'Creating...' : 'Create Backup Post'),
       ),
-      body: FutureBuilder<List<DisasterPost>>(
+      body: FutureBuilder<List<Post>>(
         future: _postsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -210,7 +345,7 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
 
           if (posts.isEmpty) {
             return const Center(
-              child: Text('No disaster posts found on backup server.'),
+              child: Text('No backup posts found on PocketBase.'),
             );
           }
 
@@ -224,17 +359,31 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
 
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: post.urgent ? Colors.red : Colors.blueGrey,
+                    backgroundColor:
+                    post.isUrgent ? Colors.red : Colors.blueGrey,
                     child: Icon(
-                      post.urgent
+                      post.isUrgent
                           ? Icons.warning_amber_rounded
                           : Icons.article,
                       color: Colors.white,
                     ),
                   ),
-                  title: Text(post.title),
-                  subtitle: Text(post.body),
-                  trailing: post.urgent
+                  title: Text(post.authorName),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(post.content),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Community: ${post.communityId}',
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  trailing: post.isUrgent
                       ? const Chip(
                     label: Text('URGENT'),
                     backgroundColor: Color(0xFFFFCDD2),

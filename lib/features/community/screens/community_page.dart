@@ -109,27 +109,27 @@ class _CommPageState extends State<CommPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Card(
-              color: Colors.grey.shade50,
-              child: ListTile(
-                leading: const Icon(Icons.wifi_tethering),
-                title: const Text('Backup Server Demo'),
-                subtitle: const Text(
-                  'Test PocketBase disaster backup connection',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const BackupServerDemoPage(),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 16),
+            // Card(
+            //   color: Colors.grey.shade50,
+            //   child: ListTile(
+            //     leading: const Icon(Icons.wifi_tethering),
+            //     title: const Text('Backup Server Demo'),
+            //     subtitle: const Text(
+            //       'Test PocketBase disaster backup connection',
+            //     ),
+            //     trailing: const Icon(Icons.chevron_right),
+            //     onTap: () {
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //           builder: (_) => const BackupServerDemoPage(),
+            //         ),
+            //       );
+            //     },
+            //   ),
+            // ),
+            //
+            // const SizedBox(height: 16),
 
             const Text(
               "Joined Communities",
