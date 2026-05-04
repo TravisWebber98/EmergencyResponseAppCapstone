@@ -113,9 +113,6 @@ class _BackupServerDemoPageState extends State<BackupServerDemoPage> {
       },
     );
 
-    titleController.dispose();
-    bodyController.dispose();
-
     if (result == null) return;
 
     await _createDisasterPost(
